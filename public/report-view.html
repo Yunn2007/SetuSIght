@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Official Structural Health Report — SetuSight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+<style>
+  body {
+    background: #FAFAF8;
+    padding: 32px 16px;
+    font-family: var(--font-body);
+    color: var(--navy);
+  }
+  .report-page {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-m);
+    padding: 48px;
+    box-shadow: var(--shadow-card);
+  }
+  .report-header {
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .report-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    margin-bottom: 24px;
+  }
+  .report-section {
+    margin-bottom: 28px;
+  }
+  .report-section-title {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green-dark);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 0.88rem;
+  }
+  .spec-label { color: var(--navy-soft); }
+  .spec-val { font-weight: 600; }
+  .report-evidence {
+    max-width: 320px;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  .report-actions {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .report-page { border: none; box-shadow: none; padding: 20px; max-width: 100%; }
+    .report-actions { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="report-actions">
+  <button onclick="window.print()" class="btn btn--primary btn--sm">🖨️ Print / Save as PDF</button>
+  <button onclick="window.close(); history.back();" class="btn btn--ghost btn--sm">Close</button>
+</div>
+
+<div class="report-page" id="reportContent">
+  <div class="report-header">
+    <div>
+      <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--navy-faint); letter-spacing: 0.1em; text-transform: uppercase;">Infrastructure Health Monitoring Platform</div>
+      <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-top: 4px;">SETUSIGHT STRUCTURAL HEALTH DOSSIER</h1>
+      <div style="font-size: 0.82rem; color: var(--green-dark); font-weight: 600;">Government of Maharashtra • Public Works Department</div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--navy-faint);" id="reportDate">Date: 21 Aug 2026</div>
+      <div style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 600; color: var(--navy);" id="reportDossierId">DOSSIER #STS-2026-01</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: BRIDGE ASSET IDENTITY -->
+  <div class="report-section">
+    <div class="report-section-title">1. Bridge Asset Inventory &amp; Metadata</div>
+    <div class="report-grid">
+      <div>
+        <div class="spec-row"><span class="spec-label">Structure Name:</span><span class="spec-val" id="repBridgeName">--</span></div>
+        <div class="spec-row"><span class="spec-label">Bridge Asset Code:</span><span class="spec-val mono" id="repBridgeId">--</span></div>
+        <div class="spec-row"><span class="spec-label">Location / Region:</span><span class="spec-val" id="repLocation">--</span></div>
+        <div class="spec-row"><span class="spec-label">Structure Type:</span><span class="spec-val" id="repType">--</span></div>
+      </div>
+      <div>
+        <div class="spec-row"><span class="spec-label">Primary Material:</span><span class="spec-val" id="repMaterial">--</span></div>
+        <div class="spec-row"><span class="spec-label">Commission Year:</span><span class="spec-val mono" id="repYear">--</span></div>
+        <div class="spec-row"><span class="spec-label">Design Life:</span><span class="spec-val" id="repLife">--</span></div>
+        <div class="spec-row"><span class="spec-label">Designated Contractor:</span><span class="spec-val" id="repContractor">--</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: HEALTH EVALUATION SUMMARY -->
+  <div class="report-section">
+    <div class="report-section-title">2. Evaluated Structural Health Index</div>
+    <div style="background: var(--bg-alt); padding: 18px; border-radius: var(--radius-s); display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div>
+        <div style="font-size: 0.8rem; color: var(--navy-faint); text-transform: uppercase;">Composite Health Assessment Score</div>
+        <div style="font-size: 2.2rem; font-family: var(--font-mono); font-weight: 800; color: var(--navy);" id="repScore">-- / 100</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 0.8rem; color: var(--navy-faint); text-transform: uppercase;">Categorical Status</div>
+        <div style="font-size: 1.1rem; font-weight: 800;" id="repStatus">--</div>
+      </div>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--navy-soft); line-height: 1.4;">
+      <em>Health score calculated via multi-parameter rule engine integrating visual crack density, bridge age-to-design-life ratio, material degradation coefficients, environmental saline exposure, and maintenance efficacy. Decision-support advisory only.</em>
+    </p>
+  </div>
+
+  <!-- SECTION 3: LATEST INSPECTION & CRACK EVIDENCE -->
+  <div class="report-section">
+    <div class="report-section-title">3. Visual Inspection Findings &amp; Computer Vision Evidence</div>
+    <div id="repInspectionContent">
+      <!-- Dynamic -->
+    </div>
+  </div>
+
+  <!-- SECTION 4: MAINTENANCE LOG -->
+  <div class="report-section">
+    <div class="report-section-title">4. Maintenance Work Order &amp; Repair History</div>
+    <div id="repMaintenanceContent">
+      <!-- Dynamic -->
+    </div>
+  </div>
+
+  <!-- SIGNATURES -->
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
+    <div>
+      <div style="font-size: 0.8rem; color: var(--navy-faint);">Inspected By</div>
+      <div style="font-weight: 700; margin-top: 24px;">Er. Vikram Patil</div>
+      <div style="font-size: 0.74rem; color: var(--navy-soft);">Senior Structural Inspector, PWD</div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 0.8rem; color: var(--navy-faint);">Approved &amp; Verified</div>
+      <div style="font-weight: 700; margin-top: 24px;">Er. Rajesh Deshmukh</div>
+      <div style="font-size: 0.74rem; color: var(--navy-soft);">Superintending Engineer, Bridges</div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bridgeId = urlParams.get('bridge_id') || urlParams.get('id');
+
+    document.getElementById('reportDate').textContent = `Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+
+    if (!bridgeId) {
+      alert('No bridge ID provided');
+      return;
+    }
+
+    try {
+      const res = await SetuApp.fetchApi(`/api/bridges/${bridgeId}`);
+      if (!res.success) return;
+
+      const b = res.data;
+      document.getElementById('repBridgeName').textContent = b.bridge_name;
+      document.getElementById('repBridgeId').textContent = b.bridge_id;
+      document.getElementById('repLocation').textContent = b.location;
+      document.getElementById('repType').textContent = b.bridge_type;
+      document.getElementById('repMaterial').textContent = b.material;
+      document.getElementById('repYear').textContent = b.construction_year;
+      document.getElementById('repLife').textContent = `${b.design_life || 50} Years`;
+      document.getElementById('repContractor').textContent = b.contractor_name || 'Designated PWD Contractor';
+      document.getElementById('repScore').textContent = `${b.current_health_score} / 100`;
+      document.getElementById('repStatus').textContent = b.current_health_status;
+      document.getElementById('reportDossierId').textContent = `DOSSIER #${b.bridge_id}-2026`;
+
+      // Fetch inspections
+      const inspRes = await SetuApp.fetchApi(`/api/inspections?bridge_id=${b.id}`);
+      const repInspDiv = document.getElementById('repInspectionContent');
+      if (inspRes.success && inspRes.data && inspRes.data.length > 0) {
+        const i = inspRes.data[0];
+        repInspDiv.innerHTML = `
+          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: flex-start;">
+            <img src="${i.image_url}" class="report-evidence" alt="Photographic Evidence">
+            <div>
+              <div class="spec-row"><span class="spec-label">Audit Date:</span><span class="spec-val mono">${i.inspection_date}</span></div>
+              <div class="spec-row"><span class="spec-label">Crack Findings:</span><span class="spec-val mono">${i.crack_count} crack(s) identified</span></div>
+              <div class="spec-row"><span class="spec-label">Assessed Severity:</span><span class="spec-val font-bold">${i.crack_severity.toUpperCase()}</span></div>
+              <div class="spec-row"><span class="spec-label">Image Cloudinary Public ID:</span><span class="spec-val mono" style="font-size:0.75rem;">${i.cloudinary_public_id}</span></div>
+              <div style="margin-top: 10px; font-size: 0.84rem; color: var(--navy-soft);">
+                <strong>Inspector Observations:</strong><br>${i.remarks || 'Routine structural condition verified.'}
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        repInspDiv.innerHTML = '<p style="font-size:0.84rem; color:var(--navy-faint);">No photographic inspections logged yet.</p>';
+      }
+
+      // Fetch maintenance
+      const maintRes = await SetuApp.fetchApi(`/api/maintenance?bridge_id=${b.id}`);
+      const repMaintDiv = document.getElementById('repMaintenanceContent');
+      if (maintRes.success && maintRes.data && maintRes.data.length > 0) {
+        repMaintDiv.innerHTML = `
+          <table class="data-table" style="font-size: 0.82rem;">
+            <thead>
+              <tr>
+                <th>Scheduled Date</th>
+                <th>Contractor</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${maintRes.data.map(m => `
+                <tr>
+                  <td class="mono">${m.scheduled_date}</td>
+                  <td>${m.contractor ? m.contractor.company_name : 'PWD Repair Team'}</td>
+                  <td>${m.priority}</td>
+                  <td>${m.status}</td>
+                  <td>${m.remarks || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } else {
+        repMaintDiv.innerHTML = '<p style="font-size:0.84rem; color:var(--navy-faint);">No active or historical maintenance orders recorded.</p>';
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+</script>
+</body>
+</html>

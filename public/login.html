@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — SetuSight Smart Bridge Platform</title>
+<meta name="description" content="SetuSight Platform Access — Secure Role-Based Login">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background: var(--bg);
+  }
+  .login-box {
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: 36px 32px;
+    box-shadow: var(--shadow-card);
+  }
+  .login-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+  .demo-pills {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .demo-pills__title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--navy-faint);
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: var(--font-mono);
+  }
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .demo-btn {
+    padding: 8px 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-s);
+    background: var(--bg-alt);
+    color: var(--navy);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .demo-btn:hover {
+    background: var(--green-tint);
+    border-color: var(--green);
+    color: var(--green-dark);
+  }
+  .back-home {
+    margin-top: 20px;
+    font-size: 0.84rem;
+    color: var(--navy-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .back-home:hover { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="login-wrapper">
+  <div class="login-box">
+    <div class="login-brand">
+      <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 26L12 14L20 22L28 10L36 26" stroke="#1F7A4D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 26H36" stroke="#10233D" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="12" cy="14" r="2" fill="#1F7A4D"/>
+        <circle cx="28" cy="10" r="2" fill="#1F7A4D"/>
+      </svg>
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; line-height: 1;">SETUSIGHT</h2>
+        <span style="font-size: 0.7rem; color: var(--navy-faint); font-family: var(--font-mono);">Government &amp; Asset Portal</span>
+      </div>
+    </div>
+
+    <p style="font-size: 0.88rem; color: var(--navy-soft); margin-bottom: 24px; text-align: center;">
+      Sign in to manage bridge inventory, view inspection records, and track maintenance.
+    </p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="email">Official Email Address</label>
+        <input type="email" id="email" class="form-input" placeholder="e.g. admin@setusight.gov.in" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn btn--primary" style="width: 100%; margin-top: 12px;">
+        Sign In to Portal <span class="arrow">→</span>
+      </button>
+    </form>
+
+    <div class="demo-pills">
+      <div class="demo-pills__title">Quick Demo Login</div>
+      <div class="demo-grid">
+        <button type="button" class="demo-btn" onclick="quickFill('admin@setusight.gov.in', 'admin123')">
+          Admin (PWD)
+        </button>
+        <button type="button" class="demo-btn" onclick="quickFill('inspector@setusight.gov.in', 'inspect123')">
+          Inspector
+        </button>
+        <button type="button" class="demo-btn" onclick="quickFill('contractor@setusight.gov.in', 'contract123')">
+          Contractor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <a href="/" class="back-home">
+    ← Back to Public Landing Page
+  </a>
+</div>
+
+<script src="app.js"></script>
+<script>
+  function quickFill(email, password) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Authenticating...';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Login failed. Check your credentials.');
+      }
+
+      SetuApp.setSession(data.token, data.user);
+      SetuApp.showToast(`Welcome back, ${data.user.name}`, 'success');
+
+      setTimeout(() => {
+        if (data.user.role === 'admin') window.location.href = '/admin';
+        else if (data.user.role === 'inspector') window.location.href = '/inspector';
+        else if (data.user.role === 'contractor') window.location.href = '/contractor';
+        else window.location.href = '/';
+      }, 500);
+    } catch (err) {
+      SetuApp.showToast(err.message, 'error');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Sign In to Portal <span class="arrow">→</span>';
+    }
+  });
+</script>
+</body>
+</html>

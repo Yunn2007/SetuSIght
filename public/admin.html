@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Operations Console — SetuSight</title>
+<meta name="description" content="SetuSight Executive Bridge Asset Management and Structural Health Monitoring Platform">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="app.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__header">
+      <svg class="sidebar__logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 26L12 14L20 22L28 10L36 26" stroke="#1F7A4D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 26H36" stroke="#10233D" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="12" cy="14" r="2" fill="#1F7A4D"/>
+        <circle cx="28" cy="10" r="2" fill="#1F7A4D"/>
+      </svg>
+      <div>
+        <div class="sidebar__brand-name">SETUSIGHT</div>
+        <div class="sidebar__brand-role">Executive Admin</div>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-item is-active" data-tab="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" data-tab="bridges">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19L12 5L20 19"/><path d="M4 19H20"/><circle cx="12" cy="5" r="2"/></svg>
+        Bridges Inventory
+        <span class="badge-count" id="navBridgeCount">0</span>
+      </div>
+      <div class="nav-item" data-tab="inspections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Inspections
+      </div>
+      <div class="nav-item" data-tab="maintenance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Maintenance
+      </div>
+      <div class="nav-item" data-tab="contractors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Contractors
+      </div>
+      <div class="nav-item" data-tab="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" data-tab="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Reports
+      </div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <button onclick="SetuApp.logout()" class="btn btn--ghost btn--sm" style="width: 100%;">
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- TOP HEADER -->
+    <header class="app-header">
+      <div class="app-header__left">
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+        <h1 class="app-header__title" id="pageHeaderTitle">Executive Dashboard Overview</h1>
+      </div>
+
+      <div class="app-header__actions">
+        <!-- Notification Bell -->
+        <div style="position: relative;">
+          <button class="notif-btn" id="notifBellBtn" aria-label="View notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h4>System Notifications</h4>
+              <button id="markAllReadBtn">Mark all as read</button>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User profile pill -->
+        <div class="user-pill">
+          <div class="user-pill__avatar" id="headerUserAvatar">A</div>
+          <div>
+            <div class="user-pill__name" id="headerUserName">Admin User</div>
+            <div class="user-pill__role" id="headerUserRole">ADMIN</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT BODY -->
+    <main class="app-content">
+
+      <!-- ================= OVERVIEW TAB ================= -->
+      <section id="tab-overview" class="tab-pane">
+        <!-- Overview Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-card__label">Total Bridges</span>
+            <span class="stat-card__val" id="statTotalBridges">0</span>
+            <span class="stat-card__sub">Monitored structures</span>
+          </div>
+          <div class="stat-card stat-card--good">
+            <span class="stat-card__label">Healthy (Good)</span>
+            <span class="stat-card__val" id="statHealthyBridges">0</span>
+            <span class="stat-card__sub">Score &ge; 80</span>
+          </div>
+          <div class="stat-card stat-card--moderate">
+            <span class="stat-card__label">Moderate Warning</span>
+            <span class="stat-card__val" id="statWarningBridges">0</span>
+            <span class="stat-card__sub">Score 60 – 79</span>
+          </div>
+          <div class="stat-card stat-card--attention">
+            <span class="stat-card__label">Critical Attention</span>
+            <span class="stat-card__val" id="statCriticalBridges">0</span>
+            <span class="stat-card__sub">Score &lt; 60</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Total Inspections</span>
+            <span class="stat-card__val" id="statTotalInspections">0</span>
+            <span class="stat-card__sub">Logged audits</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Maintenance Due</span>
+            <span class="stat-card__val" id="statMaintenanceDue">0</span>
+            <span class="stat-card__sub">Active work orders</span>
+          </div>
+        </div>
+
+        <!-- Charts & Critical Alerts Row -->
+        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; margin-bottom: 24px;">
+          <!-- Health Distribution Chart -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Bridge Health Distribution</h3>
+                <p class="card__desc">Current condition across Navi Mumbai network</p>
+              </div>
+            </div>
+            <div class="card__body" style="height: 280px; display: flex; align-items: center; justify-content: center;">
+              <canvas id="healthDistChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Critical Alerts / Attention Widget -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Critical Alerts &amp; High Risk Findings</h3>
+                <p class="card__desc">Structures requiring immediate intervention</p>
+              </div>
+            </div>
+            <div class="card__body" id="criticalAlertsFeed" style="max-height: 280px; overflow-y: auto;">
+              <div class="notif-empty">No critical bridge alerts logged.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Inspections & Maintenance Due Tables -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- Recent Inspections -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Recent Inspections</h3>
+                <p class="card__desc">Latest computer vision &amp; visual audits</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" onclick="switchTab('inspections')">View All</button>
+            </div>
+            <div class="card__body card__body--flush">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Bridge</th>
+                      <th>Date</th>
+                      <th>Cracks</th>
+                      <th>Severity</th>
+                      <th>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overviewRecentInspections">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Maintenance Tasks Due -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Maintenance Tasks Due</h3>
+                <p class="card__desc">Active repair work orders</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" onclick="switchTab('maintenance')">View All</button>
+            </div>
+            <div class="card__body card__body--flush">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Bridge</th>
+                      <th>Priority</th>
+                      <th>Due Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overviewMaintenanceDue">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= BRIDGES TAB ================= -->
+      <section id="tab-bridges" class="tab-pane" style="display:none;">
+        <div class="toolbar">
+          <div class="toolbar__search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="bridgeSearchInput" placeholder="Search by name, ID or location...">
+          </div>
+
+          <div class="toolbar__filters">
+            <select id="bridgeStatusFilter" class="filter-select">
+              <option value="">All Health Statuses</option>
+              <option value="Good">Good (Healthy)</option>
+              <option value="Moderate">Moderate</option>
+              <option value="Attention Required">Attention Required</option>
+            </select>
+
+            <select id="bridgeAreaFilter" class="filter-select">
+              <option value="">All Locations</option>
+              <option value="Nerul">Nerul</option>
+              <option value="Seawoods">Seawoods</option>
+              <option value="CBD Belapur">CBD Belapur</option>
+            </select>
+
+            <button class="btn btn--primary btn--sm" onclick="openAddBridgeModal()">
+              + Add Bridge Asset
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Bridge ID</th>
+                    <th>Bridge Name</th>
+                    <th>Location</th>
+                    <th>Year / Age</th>
+                    <th>Material</th>
+                    <th>Health Score</th>
+                    <th>Status</th>
+                    <th>Contractor</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="bridgesTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= INSPECTIONS TAB ================= -->
+      <section id="tab-inspections" class="tab-pane" style="display:none;">
+        <div class="toolbar">
+          <div class="toolbar__search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="inspectionSearchInput" placeholder="Search inspections...">
+          </div>
+
+          <div class="toolbar__filters">
+            <select id="inspectionSeverityFilter" class="filter-select">
+              <option value="">All Crack Severities</option>
+              <option value="low">Low</option>
+              <option value="moderate">Moderate</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Photo Evidence</th>
+                    <th>Bridge ID / Name</th>
+                    <th>Inspection Date</th>
+                    <th>Crack Count</th>
+                    <th>Severity</th>
+                    <th>Computed Score</th>
+                    <th>Health Status</th>
+                    <th>Inspector Remarks</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inspectionsTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= MAINTENANCE TAB ================= -->
+      <section id="tab-maintenance" class="tab-pane" style="display:none;">
+        <div class="toolbar">
+          <div class="toolbar__search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="maintenanceSearchInput" placeholder="Search work orders...">
+          </div>
+
+          <div class="toolbar__filters">
+            <select id="maintenanceStatusFilter" class="filter-select">
+              <option value="">All Statuses</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+
+            <button class="btn btn--primary btn--sm" onclick="openScheduleMaintenanceModal()">
+              + Schedule Maintenance
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Bridge</th>
+                    <th>Contractor</th>
+                    <th>Scheduled Date</th>
+                    <th>Completion Date</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="maintenanceTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CONTRACTORS TAB ================= -->
+      <section id="tab-contractors" class="tab-pane" style="display:none;">
+        <div class="toolbar">
+          <div class="toolbar__search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="contractorSearchInput" placeholder="Search contractors...">
+          </div>
+
+          <div class="toolbar__filters">
+            <button class="btn btn--primary btn--sm" onclick="openAddContractorModal()">
+              + Add Contractor
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Assigned Bridges</th>
+                    <th>Completed Work</th>
+                    <th>Overdue Work</th>
+                    <th>Compliance Flag</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contractorsTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ANALYTICS TAB ================= -->
+      <section id="tab-analytics" class="tab-pane" style="display:none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Crack Severity Distribution</h3>
+                <p class="card__desc">Severity classifications from inspections</p>
+              </div>
+            </div>
+            <div class="card__body" style="height: 280px; display: flex; align-items: center; justify-content: center;">
+              <canvas id="severityChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Maintenance Status Breakdown</h3>
+                <p class="card__desc">Current work order progression</p>
+              </div>
+            </div>
+            <div class="card__body" style="height: 280px; display: flex; align-items: center; justify-content: center;">
+              <canvas id="maintStatusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__header">
+            <div>
+              <h3 class="card__title">Contractor Performance &amp; Completion Velocity</h3>
+              <p class="card__desc">Repair resolution and compliance metrics</p>
+            </div>
+          </div>
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Contractor Firm</th>
+                    <th>Compliance Flag</th>
+                    <th>Total Work Orders</th>
+                    <th>Completed</th>
+                    <th>Overdue</th>
+                    <th>Performance Score</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsContractorTable">
+                  <!-- Dynamic -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= REPORTS TAB ================= -->
+      <section id="tab-reports" class="tab-pane" style="display:none;">
+        <div class="toolbar">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Official Structural Health Reports</h3>
+            <p style="font-size: 0.84rem; color: var(--navy-soft);">Generate and export printable engineering dossiers for bridges and inspections</p>
+          </div>
+          <button class="btn btn--primary btn--sm" onclick="openGenerateReportModal()">
+            + Generate New Dossier
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Report Type</th>
+                    <th>Bridge Asset</th>
+                    <th>Generated Date</th>
+                    <th>File Action</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. ADD / EDIT BRIDGE MODAL -->
+<div class="modal-backdrop" id="bridgeModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="bridgeModalTitle">Register New Bridge Asset</h3>
+      <button class="modal__close" onclick="closeModal('bridgeModal')">&times;</button>
+    </div>
+    <form id="bridgeForm">
+      <div class="modal__body">
+        <input type="hidden" id="editBridgeId">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="bridge_id_input">Bridge ID *</label>
+            <input type="text" id="bridge_id_input" class="form-input" placeholder="e.g. BR013" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bridge_name_input">Bridge Name *</label>
+            <input type="text" id="bridge_name_input" class="form-input" placeholder="e.g. Vashi Creek Bridge Ext." required>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="location_input">Location / Node *</label>
+            <input type="text" id="location_input" class="form-input" placeholder="e.g. Nerul / Vashi" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bridge_type_input">Bridge Structure Type *</label>
+            <select id="bridge_type_input" class="form-select" required>
+              <option value="Girder Bridge">Girder Bridge</option>
+              <option value="Flyover / Viaduct">Flyover / Viaduct</option>
+              <option value="ROB / Arch Girder">ROB / Arch Girder</option>
+              <option value="Foot Overbridge">Foot Overbridge</option>
+              <option value="Pedestrian Truss">Pedestrian Truss</option>
+              <option value="Underpass Box Culvert">Underpass Box Culvert</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="material_input">Primary Material *</label>
+            <select id="material_input" class="form-select" required>
+              <option value="Prestressed Concrete">Prestressed Concrete</option>
+              <option value="Reinforced Concrete">Reinforced Concrete</option>
+              <option value="Structural Steel &amp; Concrete">Structural Steel &amp; Concrete</option>
+              <option value="Structural Steel Composite">Structural Steel Composite</option>
+              <option value="Pre-engineered Steel">Pre-engineered Steel</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="construction_year_input">Construction Year *</label>
+            <input type="number" id="construction_year_input" class="form-input" min="1950" max="2026" value="2018" required>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="design_life_input">Design Life (Years)</label>
+            <input type="number" id="design_life_input" class="form-input" value="50" min="10" max="150">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contractor_select_input">Assigned Contractor</label>
+            <select id="contractor_select_input" class="form-select">
+              <option value="">-- Select Contractor --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="length_input">Span Length (Meters)</label>
+            <input type="number" step="0.1" id="length_input" class="form-input" placeholder="e.g. 240.0">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="width_input">Deck Width (Meters)</label>
+            <input type="number" step="0.1" id="width_input" class="form-input" placeholder="e.g. 18.5">
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('bridgeModal')">Cancel</button>
+        <button type="submit" id="saveBridgeBtn" class="btn btn--primary btn--sm">Save Bridge Asset</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. SCHEDULE MAINTENANCE MODAL -->
+<div class="modal-backdrop" id="maintenanceModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Schedule Maintenance Task</h3>
+      <button class="modal__close" onclick="closeModal('maintenanceModal')">&times;</button>
+    </div>
+    <form id="maintenanceForm">
+      <div class="modal__body">
+        <div class="form-group">
+          <label class="form-label" for="maint_bridge_select">Target Bridge Asset *</label>
+          <select id="maint_bridge_select" class="form-select" required>
+            <option value="">-- Select Bridge --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="maint_contractor_select">Assigned Contractor *</label>
+          <select id="maint_contractor_select" class="form-select" required>
+            <option value="">-- Select Contractor --</option>
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="maint_date_input">Scheduled Date *</label>
+            <input type="date" id="maint_date_input" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="maint_priority_select">Priority Level *</label>
+            <select id="maint_priority_select" class="form-select" required>
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="maint_remarks_input">Required Scope / Repair Notes</label>
+          <textarea id="maint_remarks_input" class="form-textarea" rows="3" placeholder="e.g. Epoxy crack sealing on pier P2 and bearing lubrications..."></textarea>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('maintenanceModal')">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--sm">Schedule &amp; Notify Contractor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. ADD CONTRACTOR MODAL -->
+<div class="modal-backdrop" id="contractorModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="contractorModalTitle">Add Contractor Firm</h3>
+      <button class="modal__close" onclick="closeModal('contractorModal')">&times;</button>
+    </div>
+    <form id="contractorForm">
+      <div class="modal__body">
+        <input type="hidden" id="editContractorId">
+        <div class="form-group">
+          <label class="form-label" for="company_name_input">Company / Entity Name *</label>
+          <input type="text" id="company_name_input" class="form-input" placeholder="e.g. InfraTech Solutions Pvt. Ltd." required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="contact_person_input">Contact Person / Engineer Lead *</label>
+          <input type="text" id="contact_person_input" class="form-input" placeholder="e.g. Suresh Kulkarni" required>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="contractor_email_input">Official Email Address *</label>
+            <input type="email" id="contractor_email_input" class="form-input" placeholder="contractor@setusight.gov.in" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contractor_phone_input">Phone Number *</label>
+            <input type="text" id="contractor_phone_input" class="form-input" placeholder="+91 98201 00000" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="contractor_flag_input">Compliance &amp; Review Flag</label>
+          <select id="contractor_flag_input" class="form-select">
+            <option value="Normal">Normal</option>
+            <option value="Yellow / Review">Yellow / Review</option>
+            <option value="Red / Escalated Review">Red / Escalated Review</option>
+          </select>
+          <span class="form-hint">Prototype decision-support indicator for maintenance auditing.</span>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('contractorModal')">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--sm">Save Contractor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 4. GENERATE REPORT MODAL -->
+<div class="modal-backdrop" id="reportModal">
+  <div class="modal">
+    <div class="modal__header">
+      <h3>Generate Bridge Dossier</h3>
+      <button class="modal__close" onclick="closeModal('reportModal')">&times;</button>
+    </div>
+    <form id="reportForm">
+      <div class="modal__body">
+        <div class="form-group">
+          <label class="form-label" for="report_bridge_select">Select Bridge *</label>
+          <select id="report_bridge_select" class="form-select" required>
+            <option value="">-- Select Bridge --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="report_type_select">Report Dossier Type *</label>
+          <select id="report_type_select" class="form-select" required>
+            <option value="Inspection Report">Inspection Report</option>
+            <option value="Maintenance Report">Maintenance Report</option>
+            <option value="Bridge History Report">Bridge History Report</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('reportModal')">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--sm">Generate Dossier</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

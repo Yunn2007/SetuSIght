@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Inspector Console — SetuSight</title>
+<meta name="description" content="SetuSight Field Bridge Inspection, Image Capture &amp; Health Assessment">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__header">
+      <svg class="sidebar__logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 26L12 14L20 22L28 10L36 26" stroke="#1F7A4D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 26H36" stroke="#10233D" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="12" cy="14" r="2" fill="#1F7A4D"/>
+        <circle cx="28" cy="10" r="2" fill="#1F7A4D"/>
+      </svg>
+      <div>
+        <div class="sidebar__brand-name">SETUSIGHT</div>
+        <div class="sidebar__brand-role">Field Inspector</div>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-item is-active" data-tab="new-inspection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m8-8H4"/></svg>
+        New Inspection
+      </div>
+      <div class="nav-item" data-tab="assigned-bridges">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19L12 5L20 19"/><path d="M4 19H20"/><circle cx="12" cy="5" r="2"/></svg>
+        Bridge Network
+      </div>
+      <div class="nav-item" data-tab="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Inspection History
+      </div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <button onclick="SetuApp.logout()" class="btn btn--ghost btn--sm" style="width: 100%;">
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- TOP HEADER -->
+    <header class="app-header">
+      <div class="app-header__left">
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+        <h1 class="app-header__title" id="pageHeaderTitle">Log Bridge Inspection</h1>
+      </div>
+
+      <div class="app-header__actions">
+        <!-- Notification Bell -->
+        <div style="position: relative;">
+          <button class="notif-btn" id="notifBellBtn" aria-label="View notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h4>Inspector Alerts</h4>
+              <button id="markAllReadBtn">Mark read</button>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User profile pill -->
+        <div class="user-pill">
+          <div class="user-pill__avatar" id="headerUserAvatar">I</div>
+          <div>
+            <div class="user-pill__name" id="headerUserName">Senior Inspector</div>
+            <div class="user-pill__role" id="headerUserRole">INSPECTOR</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT BODY -->
+    <main class="app-content">
+
+      <!-- ================= NEW INSPECTION TAB ================= -->
+      <section id="tab-new-inspection" class="tab-pane">
+        <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 28px;">
+          <!-- Form Panel -->
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Bridge Inspection &amp; Image Capture</h3>
+                <p class="card__desc">Upload site imagery to Cloudinary and run health scoring</p>
+              </div>
+            </div>
+            <div class="card__body">
+              <form id="createInspectionForm">
+                <div class="form-group">
+                  <label class="form-label" for="insp_bridge_select">Select Bridge Structure *</label>
+                  <select id="insp_bridge_select" class="form-select" required>
+                    <option value="">-- Choose Bridge from Network --</option>
+                  </select>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="insp_date_input">Inspection Date *</label>
+                    <input type="date" id="insp_date_input" class="form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="insp_severity_input">Field Crack Severity Assessment *</label>
+                    <select id="insp_severity_input" class="form-select" required>
+                      <option value="none">None (No Visible Cracks)</option>
+                      <option value="low">Low (Hairline Surface Cracks &lt; 0.2mm)</option>
+                      <option value="moderate" selected>Moderate (Longitudinal / Span Fissures)</option>
+                      <option value="high">High (Severe Diagonal Shear Cracks)</option>
+                      <option value="critical">Critical (Spalling &amp; Rebar Exposure)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="insp_crack_count">Visible Crack Count (Estimated / Counted)</label>
+                  <input type="number" id="insp_crack_count" class="form-input" value="2" min="0" max="50">
+                </div>
+
+                <!-- Drag & Drop Upload Dropzone -->
+                <div class="form-group">
+                  <label class="form-label">Inspection Photo Evidence (Uploaded to Cloudinary) *</label>
+                  <div class="upload-dropzone" id="dropzoneBox">
+                    <svg class="upload-dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <div class="upload-dropzone__text">Click or drag bridge inspection photo here</div>
+                    <div class="upload-dropzone__sub">Supports JPEG, PNG, WebP up to 10MB</div>
+                    <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" required>
+                    <img id="imagePreview" class="upload-preview" alt="Inspection Preview">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="insp_remarks">Inspector Structural Notes &amp; Observations</label>
+                  <textarea id="insp_remarks" class="form-textarea" rows="3" placeholder="Detail observed structural condition, location on deck/piers, water seepage, or bearing pad wear..."></textarea>
+                </div>
+
+                <button type="submit" id="submitInspectionBtn" class="btn btn--primary" style="width: 100%; margin-top: 8px;">
+                  Submit Inspection &amp; Calculate Health <span class="arrow">→</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- AI Model Notice & Live Result Preview -->
+          <div>
+            <!-- AI Placeholder Info Box -->
+            <div class="card" style="border-left: 4px solid var(--green);">
+              <div class="card__header">
+                <div>
+                  <h4 style="font-size: 0.95rem; font-weight: 700;">Computer Vision Interface</h4>
+                  <p class="card__desc">Machine Learning Pipeline Integration</p>
+                </div>
+              </div>
+              <div class="card__body">
+                <div style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-s); font-family: var(--font-mono); font-size: 0.76rem; margin-bottom: 12px;">
+                  <code>Status: AI analysis module pending integration</code><br>
+                  <span style="color: var(--navy-faint);">YOLOv8 inference will evaluate crack density and bounding boxes on Cloudinary URLs.</span>
+                </div>
+                <p style="font-size: 0.84rem; color: var(--navy-soft); line-height: 1.45;">
+                  Rule-based health scoring combines crack severity, bridge age/design life ratio, material factors, and historical repairs.
+                </p>
+              </div>
+            </div>
+
+            <!-- Last Submitted Inspection Result -->
+            <div class="card" id="lastResultCard" style="display:none;">
+              <div class="card__header">
+                <div>
+                  <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--green-dark);">Assessment Generated</h4>
+                  <p class="card__desc">Stored in Supabase Database</p>
+                </div>
+              </div>
+              <div class="card__body" id="lastResultBody">
+                <!-- Injected after submit -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ASSIGNED BRIDGES TAB ================= -->
+      <section id="tab-assigned-bridges" class="tab-pane" style="display:none;">
+        <div class="card">
+          <div class="card__header">
+            <div>
+              <h3 class="card__title">Monitored Bridge Network</h3>
+              <p class="card__desc">Structures scheduled for routine condition assessments</p>
+            </div>
+          </div>
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Bridge ID</th>
+                    <th>Bridge Name</th>
+                    <th>Location</th>
+                    <th>Material</th>
+                    <th>Health Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inspectorBridgesTable">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= HISTORY TAB ================= -->
+      <section id="tab-history" class="tab-pane" style="display:none;">
+        <div class="card">
+          <div class="card__header">
+            <div>
+              <h3 class="card__title">Inspection History Log</h3>
+              <p class="card__desc">Audits and photographic records logged by inspectors</p>
+            </div>
+          </div>
+          <div class="card__body card__body--flush">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Photo</th>
+                    <th>Bridge</th>
+                    <th>Date</th>
+                    <th>Cracks</th>
+                    <th>Severity</th>
+                    <th>Score</th>
+                    <th>Health Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="inspectorHistoryTable">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="inspector.js"></script>
+</body>
+</html>

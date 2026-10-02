@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SetuSight — Smart Bridge Health Monitoring &amp; Asset Management</title>
+<meta name="description" content="SetuSight combines computer vision-based crack detection with centralized bridge asset management, health assessment, and maintenance tracking.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<header class="nav" id="nav">
+  <div class="nav__inner container">
+    <a href="#home" class="nav__brand">
+      <svg class="nav__logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M4 26L12 14L20 22L28 10L36 26" stroke="#1F7A4D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 26H36" stroke="#10233D" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="12" cy="14" r="2" fill="#1F7A4D"/>
+        <circle cx="28" cy="10" r="2" fill="#1F7A4D"/>
+      </svg>
+      <span class="nav__brand-text">
+        <span class="nav__name">SETUSIGHT</span>
+        <span class="nav__tag">Smart Bridge Intelligence</span>
+      </span>
+    </a>
+
+    <nav class="nav__links" id="navLinks">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#bridge-network">Bridge Network</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a href="/login" class="btn btn--primary btn--sm">Login</a>
+      <button class="nav__burger" id="navBurger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="home">
+  <div class="container hero__grid">
+    <div class="hero__content reveal">
+      <p class="eyebrow">Smart Infrastructure. Stronger Tomorrow.</p>
+      <h1 class="hero__heading">
+        Smart Bridge <span class="accent">Health Monitoring</span> &amp; <span class="accent">Asset Management</span>
+      </h1>
+      <p class="hero__desc">
+        SetuSight combines computer vision-based crack detection with centralized bridge asset management, health assessment, inspection history, and maintenance tracking to support safer and smarter infrastructure management.
+      </p>
+      <div class="hero__cta">
+        <a href="/login" class="btn btn--primary">Get Started <span class="arrow">→</span></a>
+        <a href="#how-it-works" class="btn btn--ghost">Explore the System <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <div class="hero__visual reveal">
+      <div class="hero__art-frame">
+        <svg viewBox="0 0 640 460" class="hero__art" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a cable-stayed bridge with monitoring sensors">
+          <defs>
+            <linearGradient id="skyFade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#EEF2EE"/>
+              <stop offset="100%" stop-color="#FAFAF8"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="640" height="460" fill="url(#skyFade)"/>
+          <!-- water/ground line -->
+          <line x1="0" y1="370" x2="640" y2="370" stroke="#D9DEDA" stroke-width="1.5"/>
+          <!-- deck -->
+          <rect x="60" y="290" width="520" height="10" rx="2" fill="#10233D"/>
+          <!-- deck supports -->
+          <rect x="80" y="300" width="6" height="55" fill="#C7CFC9"/>
+          <rect x="200" y="300" width="6" height="55" fill="#C7CFC9"/>
+          <rect x="320" y="300" width="6" height="55" fill="#C7CFC9"/>
+          <rect x="440" y="300" width="6" height="55" fill="#C7CFC9"/>
+          <rect x="554" y="300" width="6" height="55" fill="#C7CFC9"/>
+          <!-- pylon -->
+          <rect x="312" y="70" width="14" height="225" rx="2" fill="#10233D"/>
+          <!-- cables -->
+          <g stroke="#1F7A4D" stroke-width="2" stroke-linecap="round" opacity="0.85">
+            <line x1="319" y1="95" x2="90" y2="292"/>
+            <line x1="319" y1="115" x2="150" y2="292"/>
+            <line x1="319" y1="140" x2="210" y2="292"/>
+            <line x1="319" y1="170" x2="270" y2="292"/>
+            <line x1="319" y1="95" x2="548" y2="292"/>
+            <line x1="319" y1="115" x2="488" y2="292"/>
+            <line x1="319" y1="140" x2="428" y2="292"/>
+            <line x1="319" y1="170" x2="368" y2="292"/>
+          </g>
+          <!-- sensor nodes on deck -->
+          <g>
+            <circle cx="150" cy="295" r="5" fill="#FAFAF8" stroke="#1F7A4D" stroke-width="2"/>
+            <circle cx="150" cy="295" r="1.6" fill="#1F7A4D"/>
+            <circle cx="320" cy="295" r="5" fill="#FAFAF8" stroke="#1F7A4D" stroke-width="2"/>
+            <circle cx="320" cy="295" r="1.6" fill="#1F7A4D"/>
+            <circle cx="480" cy="295" r="5" fill="#FAFAF8" stroke="#1F7A4D" stroke-width="2"/>
+            <circle cx="480" cy="295" r="1.6" fill="#1F7A4D"/>
+          </g>
+          <!-- subtle pulse rings -->
+          <circle cx="320" cy="295" r="14" fill="none" stroke="#1F7A4D" stroke-width="1" opacity="0.35"/>
+          <!-- horizon detail: distant low-rise skyline -->
+          <g fill="#E3E6E2">
+            <rect x="20" y="330" width="18" height="40"/>
+            <rect x="42" y="345" width="14" height="25"/>
+            <rect x="580" y="335" width="16" height="35"/>
+            <rect x="600" y="350" width="14" height="20"/>
+          </g>
+        </svg>
+
+        <div class="hero__badge">
+          <span class="hero__badge-num">10+</span>
+          <span class="hero__badge-text">Bridges Monitored<br><em>Nerul • Seawoods • CBD Belapur</em></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUICK HIGHLIGHTS STRIP ============ -->
+<section class="highlights">
+  <div class="container highlights__row">
+    <div class="highlight">
+      <svg class="highlight__icon" viewBox="0 0 24 24" fill="none"><path d="M3 18L8 10L13 15L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="highlight__num" data-count="10" data-suffix="+">0</span>
+      <span class="highlight__label">Bridges / Structures</span>
+    </div>
+    <div class="highlight">
+      <svg class="highlight__icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="highlight__num" data-count="3">0</span>
+      <span class="highlight__label">User Roles</span>
+    </div>
+    <div class="highlight">
+      <svg class="highlight__icon" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 3v9l6 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="highlight__num" data-count="360" data-suffix="°">0</span>
+      <span class="highlight__label">Bridge Lifecycle Management</span>
+    </div>
+    <div class="highlight">
+      <svg class="highlight__icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="highlight__num highlight__num--static">AI</span>
+      <span class="highlight__label">Computer Vision Analysis</span>
+    </div>
+    <div class="highlight">
+      <svg class="highlight__icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg>
+      <span class="highlight__num highlight__num--static">Navi Mumbai</span>
+      <span class="highlight__label">Initial Deployment</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="section" id="about">
+  <div class="container about__grid">
+    <div class="about__label-col reveal">
+      <p class="eyebrow eyebrow--dark">About SetuSight</p>
+      <h2 class="section__heading">One Platform for the Complete Bridge Lifecycle</h2>
+    </div>
+    <div class="about__body-col reveal">
+      <p class="about__text">
+        Conventional bridge inspection often relies on manual site visits, paper records, and information scattered across departments and contractors. Findings are hard to compare over time, and maintenance decisions are made without a complete picture of a structure's history.
+      </p>
+      <p class="about__text">SetuSight brings together the full lifecycle in one system:</p>
+      <ul class="about__list">
+        <li>Bridge inventory</li>
+        <li>Structural information</li>
+        <li>Inspection records</li>
+        <li>AI-assisted crack detection</li>
+        <li>Health assessment</li>
+        <li>Maintenance history</li>
+        <li>Contractor management</li>
+      </ul>
+      <div class="about__shift">
+        <span class="about__shift-tag about__shift-tag--from">Reactive Maintenance</span>
+        <span class="about__shift-arrow">→</span>
+        <span class="about__shift-tag about__shift-tag--to">Data-Driven Preventive Maintenance</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CORE FEATURES ============ -->
+<section class="section section--alt" id="features">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">Core Features</p>
+    <h2 class="section__heading center">Everything You Need to Manage Bridge Health</h2>
+
+    <div class="features__grid">
+      <article class="feature-card reveal">
+        <span class="feature-card__num">01</span>
+        <h3>AI Crack Detection</h3>
+        <p>Computer vision analyzes bridge inspection images to identify and localize visible cracks.</p>
+        <ul>
+          <li>Image-based inspection</li>
+          <li>Crack detection</li>
+          <li>Crack severity analysis</li>
+          <li>Inspection records</li>
+        </ul>
+      </article>
+
+      <article class="feature-card reveal">
+        <span class="feature-card__num">02</span>
+        <h3>Bridge Asset Management</h3>
+        <p>A centralized digital record for every bridge in the network.</p>
+        <ul>
+          <li>Bridge ID &amp; name</li>
+          <li>Location &amp; bridge type</li>
+          <li>Construction year &amp; design life</li>
+          <li>Material, authority &amp; contractor</li>
+          <li>Environment &amp; traffic load</li>
+        </ul>
+      </article>
+
+      <article class="feature-card reveal">
+        <span class="feature-card__num">03</span>
+        <h3>Health Assessment</h3>
+        <p>Inspection results are combined with bridge-specific parameters to generate an AI-assisted health and risk assessment, supporting maintenance prioritization — not a prediction of exact structural failure.</p>
+        <ul>
+          <li>Crack condition</li>
+          <li>Bridge age &amp; material</li>
+          <li>Environment &amp; traffic load</li>
+          <li>Inspection &amp; maintenance history</li>
+        </ul>
+      </article>
+
+      <article class="feature-card reveal">
+        <span class="feature-card__num">04</span>
+        <h3>Maintenance Management</h3>
+        <p>The complete maintenance workflow, from requirement to closure.</p>
+        <ul>
+          <li>Maintenance requirements</li>
+          <li>Work assignment</li>
+          <li>Contractor allocation</li>
+          <li>Repair status &amp; evidence</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">How It Works</p>
+    <h2 class="section__heading center">From Inspection to Action</h2>
+
+    <div class="workflow reveal">
+      <div class="workflow__step">
+        <span class="workflow__num">01</span>
+        <h3>Register</h3>
+        <p>Bridge details are added to the centralized bridge inventory.</p>
+      </div>
+      <div class="workflow__arrow">→</div>
+      <div class="workflow__step">
+        <span class="workflow__num">02</span>
+        <h3>Inspect</h3>
+        <p>Inspector uploads bridge inspection images and records inspection information.</p>
+      </div>
+      <div class="workflow__arrow">→</div>
+      <div class="workflow__step">
+        <span class="workflow__num">03</span>
+        <h3>Detect</h3>
+        <p>A computer vision model detects visible cracks in inspection images.</p>
+      </div>
+      <div class="workflow__arrow">→</div>
+      <div class="workflow__step">
+        <span class="workflow__num">04</span>
+        <h3>Assess</h3>
+        <p>Crack information is combined with bridge metadata and history to generate a health assessment.</p>
+      </div>
+      <div class="workflow__arrow">→</div>
+      <div class="workflow__step">
+        <span class="workflow__num">05</span>
+        <h3>Maintain</h3>
+        <p>Maintenance requirements are prioritized and assigned to contractors.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BRIDGE NETWORK ============ -->
+<section class="section section--alt" id="bridge-network">
+  <div class="container">
+    <div class="bn__head reveal">
+      <div>
+        <p class="eyebrow eyebrow--dark">Bridge Network</p>
+        <h2 class="section__heading">Manage Your Entire Bridge Network</h2>
+        <p class="bn__sub">SetuSight provides a centralized view of bridges across the monitored region, making it easier to track condition, inspections, and maintenance activities.</p>
+      </div>
+      <a href="/login" class="btn btn--primary">View Bridge Network <span class="arrow">→</span></a>
+    </div>
+
+    <div class="bn__table-wrap reveal">
+      <div class="bn__table-note">System records / demonstration data — not verified structural assessments</div>
+      <table class="bn__table">
+        <thead>
+          <tr>
+            <th>Bridge ID</th>
+            <th>Bridge Name</th>
+            <th>Area</th>
+            <th>Condition</th>
+            <th>Last Inspection</th>
+            <th>Maintenance Status</th>
+          </tr>
+        </thead>
+        <tbody id="bridgeTableBody">
+          <!-- rows dynamically loaded from API with static fallback -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPLOYMENT / LOCATION ============ -->
+<section class="section" id="deployment">
+  <div class="container deployment__grid">
+    <div class="reveal">
+      <p class="eyebrow eyebrow--dark">Built for Real Infrastructure</p>
+      <h2 class="section__heading">Deployed Across Navi Mumbai</h2>
+      <p class="deployment__text">SetuSight's initial proof-of-concept focuses on selected bridges and transportation infrastructure across Navi Mumbai.</p>
+
+      <div class="deployment__areas">
+        <div class="deployment__area"><span class="deployment__dot"></span>Nerul</div>
+        <div class="deployment__area"><span class="deployment__dot"></span>Seawoods</div>
+        <div class="deployment__area"><span class="deployment__dot"></span>CBD Belapur</div>
+      </div>
+
+      <p class="deployment__count">10+ monitored bridge / transportation assets</p>
+      <a href="/login" class="btn btn--ghost">Explore Bridge Network <span class="arrow">→</span></a>
+    </div>
+
+    <div class="reveal">
+      <svg viewBox="0 0 420 420" class="deployment__map" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Simplified map illustration of Navi Mumbai showing Nerul, Seawoods and CBD Belapur">
+        <rect x="0" y="0" width="420" height="420" rx="16" fill="#F3F5F2"/>
+        <path d="M40 340 C 90 300, 120 260, 110 200 C 100 140, 150 100, 210 90 C 270 80, 330 110, 360 160 C 385 205, 370 260, 320 300 C 270 340, 200 330, 150 360 C 110 385, 60 375, 40 340 Z" fill="#EAF0EA" stroke="#D9DEDA" stroke-width="1.5"/>
+        <!-- connecting route -->
+        <path d="M150 300 C 180 270, 190 230, 200 200 C 210 170, 240 150, 270 145" stroke="#1F7A4D" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+        <!-- Nerul -->
+        <circle cx="150" cy="300" r="7" fill="#1F7A4D"/>
+        <circle cx="150" cy="300" r="14" fill="none" stroke="#1F7A4D" stroke-width="1" opacity="0.4"/>
+        <text x="165" y="305" font-family="Inter, sans-serif" font-size="14" fill="#10233D" font-weight="600">Nerul</text>
+        <!-- Seawoods -->
+        <circle cx="200" cy="200" r="7" fill="#1F7A4D"/>
+        <circle cx="200" cy="200" r="14" fill="none" stroke="#1F7A4D" stroke-width="1" opacity="0.4"/>
+        <text x="215" y="205" font-family="Inter, sans-serif" font-size="14" fill="#10233D" font-weight="600">Seawoods</text>
+        <!-- CBD Belapur -->
+        <circle cx="270" cy="145" r="7" fill="#1F7A4D"/>
+        <circle cx="270" cy="145" r="14" fill="none" stroke="#1F7A4D" stroke-width="1" opacity="0.4"/>
+        <text x="285" y="150" font-family="Inter, sans-serif" font-size="14" fill="#10233D" font-weight="600">CBD Belapur</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROLE-BASED ACCESS ============ -->
+<section class="section section--alt" id="roles">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">Access &amp; Roles</p>
+    <h2 class="section__heading center">One Platform. Three Roles.</h2>
+
+    <div class="roles__grid">
+      <article class="role-card reveal">
+        <h3>Admin</h3>
+        <p class="role-card__desc">System-wide control.</p>
+        <ul>
+          <li>Manage users</li>
+          <li>Manage bridges</li>
+          <li>View inspections</li>
+          <li>Manage maintenance</li>
+          <li>View analytics</li>
+          <li>Generate reports</li>
+        </ul>
+      </article>
+      <article class="role-card reveal">
+        <h3>Inspector</h3>
+        <p class="role-card__desc">Field inspection and assessment.</p>
+        <ul>
+          <li>View assigned bridges</li>
+          <li>Conduct inspections</li>
+          <li>Upload images</li>
+          <li>Run AI crack detection</li>
+          <li>Record inspection results</li>
+          <li>Submit reports</li>
+        </ul>
+      </article>
+      <article class="role-card reveal">
+        <h3>Contractor</h3>
+        <p class="role-card__desc">Maintenance execution.</p>
+        <ul>
+          <li>View assigned work</li>
+          <li>View maintenance requirements</li>
+          <li>Update repair status</li>
+          <li>Upload repair evidence</li>
+          <li>Track completed work</li>
+        </ul>
+      </article>
+    </div>
+    <p class="roles__note">User accounts are created and managed by the Admin. There is no public registration.</p>
+  </div>
+</section>
+
+<!-- ============ HEALTH ASSESSMENT FORMULA ============ -->
+<section class="section" id="health-assessment">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">Bridge Health Assessment</p>
+    <h2 class="section__heading center">A Broader View of Bridge Health</h2>
+    <p class="ha__intro">Bridge condition is not determined by crack detection alone. SetuSight considers bridge-specific metadata and historical inspection information to support more meaningful maintenance prioritization.</p>
+
+    <div class="formula reveal">
+      <div class="formula__row formula__row--inputs">
+        <span class="formula__chip">Crack Detection</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Bridge Age</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Material</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Environment</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Traffic Load</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Inspection History</span>
+        <span class="formula__op">+</span>
+        <span class="formula__chip">Maintenance History</span>
+      </div>
+      <div class="formula__connector"></div>
+      <div class="formula__row">
+        <span class="formula__chip formula__chip--result">Health / Risk Assessment</span>
+      </div>
+      <div class="formula__connector"></div>
+      <div class="formula__row">
+        <span class="formula__chip formula__chip--final">Maintenance Priority</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TIMELINE ============ -->
+<section class="section section--alt" id="timeline">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">Records Over Time</p>
+    <h2 class="section__heading center">Inspection &amp; Maintenance Timeline</h2>
+
+    <div class="timeline reveal">
+      <div class="timeline__item">
+        <span class="timeline__year">2026</span>
+        <h4>Inspection</h4>
+        <p>Crack detected</p>
+      </div>
+      <div class="timeline__item">
+        <span class="timeline__year">2026</span>
+        <h4>Assessment</h4>
+        <p>Attention required</p>
+      </div>
+      <div class="timeline__item">
+        <span class="timeline__year">2026</span>
+        <h4>Maintenance Assigned</h4>
+        <p>Contractor notified</p>
+      </div>
+      <div class="timeline__item">
+        <span class="timeline__year">2026</span>
+        <h4>Repair Completed</h4>
+        <p>Evidence uploaded</p>
+      </div>
+      <div class="timeline__item timeline__item--upcoming">
+        <span class="timeline__year">2027</span>
+        <h4>Next Inspection</h4>
+        <p>Scheduled</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FUTURE SCOPE ============ -->
+<section class="section section--alt" id="future-scope">
+  <div class="container">
+    <p class="eyebrow eyebrow--dark center">Future Scope</p>
+    <h2 class="section__heading center">Designed to Scale</h2>
+
+    <div class="future__grid">
+      <div class="future-card reveal">
+        <h3>GPS &amp; Interactive Mapping</h3>
+        <p>Locate and visualize bridge assets.</p>
+      </div>
+      <div class="future-card reveal">
+        <h3>Drone-Based Inspection</h3>
+        <p>Capture bridge imagery using UAVs.</p>
+      </div>
+      <div class="future-card reveal">
+        <h3>IoT Structural Sensors</h3>
+        <p>Integrate vibration, strain, tilt, and other sensor data.</p>
+      </div>
+      <div class="future-card reveal">
+        <h3>Predictive Maintenance</h3>
+        <p>Use historical data to identify deterioration trends.</p>
+      </div>
+      <div class="future-card reveal">
+        <h3>Automated Alerts</h3>
+        <p>Notify authorities and contractors about inspections and maintenance requirements.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="final-cta">
+  <div class="container final-cta__inner reveal">
+    <h2>Build Safer Bridges with Better Data.</h2>
+    <p>Bring bridge inspection, health assessment, and maintenance management into one intelligent platform.</p>
+    <a href="/login" class="btn btn--primary btn--lg">Access SetuSight <span class="arrow">→</span></a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer" id="contact">
+  <div class="container footer__grid">
+    <div class="footer__col footer__col--brand">
+      <span class="nav__name">SETUSIGHT</span>
+      <span class="footer__tag">Smart Bridge Intelligence</span>
+      <p class="footer__desc">Smart Bridge Health Monitoring &amp; Asset Management System</p>
+    </div>
+    <div class="footer__col">
+      <h4>Platform</h4>
+      <a href="#features">AI Crack Detection</a>
+      <a href="#features">Bridge Asset Management</a>
+      <a href="#health-assessment">Health Assessment</a>
+      <a href="#features">Maintenance Management</a>
+    </div>
+    <div class="footer__col">
+      <h4>System</h4>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#bridge-network">Bridge Network</a>
+      <a href="#roles">User Roles</a>
+      <a href="/login">Platform Login</a>
+    </div>
+    <div class="footer__col">
+      <h4>Deployment</h4>
+      <span class="footer__region">Navi Mumbai</span>
+      <span class="footer__area-text">Nerul</span>
+      <span class="footer__area-text">Seawoods</span>
+      <span class="footer__area-text">CBD Belapur</span>
+    </div>
+  </div>
+
+  <div class="container footer__bottom">
+    <p>© 2026 SetuSight. All rights reserved.</p>
+    <div class="footer__social">
+      <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.11 1 2.5 1s2.48 1.12 2.48 2.5zM.5 8.25h4V23h-4V8.25zM8.5 8.25h3.83v2.02h.05c.53-1 1.84-2.05 3.79-2.05 4.05 0 4.8 2.67 4.8 6.14V23h-4v-6.62c0-1.58-.03-3.6-2.2-3.6-2.2 0-2.54 1.72-2.54 3.49V23h-4V8.25z"/></svg>
+      </a>
+      <a href="https://github.com" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.58.11.79-.25.79-.56v-2.17c-3.2.7-3.87-1.36-3.87-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.77.12 3.06.74.8 1.19 1.83 1.19 3.09 0 4.43-2.71 5.4-5.29 5.69.42.36.78 1.08.78 2.17v3.22c0 .31.21.68.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      </a>
+      <a href="mailto:contact@setusight.in" aria-label="Email">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script src="landing.js"></script>
+</body>
+</html>
