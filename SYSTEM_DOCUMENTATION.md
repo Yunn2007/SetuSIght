@@ -686,6 +686,28 @@ Automated verification tests are included in the repository:
    node scripts/test-contractor-flow.js
    ```
    - ✅ Verifies contractor token includes `contractor_id`.
-   - ✅ Verifies backend query isolation returns only `BR001`, `BR003`, `BR008`.
+   - ✅ Verifies backend query isolation returns only assigned bridges.
    - ✅ Verifies cross-contractor access rejection (`HTTP 403 Forbidden`).
    - ✅ Verifies maintenance state lifecycle transitions.
+
+3. **Phase 2B Visual AI Canvas & Bounding Box Test Suite:**
+   ```bash
+   node scripts/test-phase2b-visual-ai.js
+   ```
+   - ✅ Verifies real YOLOv8 bounding boxes, confidence, and center/edge crack alignment.
+   - ✅ Verifies responsive canvas box scaling across mobile, tablet, and desktop viewports.
+   - ✅ Verifies historical inspection viewer uses stored telemetry without re-running inference.
+
+4. **Phase 3A End-to-End Multi-Patch Verification Suite:**
+   ```bash
+   node scripts/test-phase3a-verification.js
+   ```
+   - ✅ 7 end-to-end integration tests exercising multi-patch uploads, Supabase storage, admin alerts, contractor isolation, and maintenance completion.
+
+5. **Critical Regression & Safety Dilution Test Suite:**
+   ```bash
+   node scripts/test-regression.js
+   ```
+   - ✅ Verifies patch score separation (Patch 58.5 + Patch 92.5 does NOT overwrite bridge health).
+   - ✅ Verifies critical defect safety override (9 clean patches + 1 critical patch forces Attention Required and score <= 58.0).
+   - ✅ Verifies partial multi-image failure handling.

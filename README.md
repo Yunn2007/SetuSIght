@@ -159,6 +159,9 @@ node scripts/test-phase3a-verification.js
 
 # 3. Visual AI Canvas Test Suite
 node scripts/test-phase2b-visual-ai.js
+
+# 4. Critical Regression & Safety Dilution Test Suite
+node scripts/test-regression.js
 ```
 
 ---
@@ -167,9 +170,9 @@ node scripts/test-phase2b-visual-ai.js
 
 | Portal / Role | Email | Password | Authorized Scopes |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@setusight.gov.in` | `Admin@123` | Full network control, bridge creation, contractor management, maintenance scheduling, reports |
-| **Inspector** | `inspector@setusight.gov.in` | `Inspector@123` | Bridge inspection, multi-patch image uploads (1-10), real-time YOLOv8 canvas analysis |
-| **Contractor** | `contractor@setusight.gov.in` | `Contractor@123` | Isolated assigned work orders, status progression (`In Progress`, `Completed`) |
+| **Admin** | `admin@setusight.gov.in` | `admin123` | Full network control, bridge creation, contractor management, maintenance scheduling, reports |
+| **Inspector** | `inspector@setusight.gov.in` | `inspect123` | Bridge inspection, multi-patch image uploads (1-10), real-time YOLOv8 canvas analysis |
+| **Contractor** | `contractor@setusight.gov.in` | `contract123` | Isolated assigned work orders, status progression (`In Progress`, `Completed`) |
 
 ---
 
