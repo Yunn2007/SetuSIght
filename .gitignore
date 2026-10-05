@@ -18,3 +18,8 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+ml/best.pt
+ml/venv/
+venv/
+ml/test_samples/
+ml/validation_results/

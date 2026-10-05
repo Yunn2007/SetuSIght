@@ -159,12 +159,12 @@
   <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
     <div>
       <div style="font-size: 0.8rem; color: var(--navy-faint);">Inspected By</div>
-      <div style="font-weight: 700; margin-top: 24px;">Er. Vikram Patil</div>
-      <div style="font-size: 0.74rem; color: var(--navy-soft);">Senior Structural Inspector, PWD</div>
+      <div style="font-weight: 700; margin-top: 24px;" id="repInspectorName">Structural Field Inspector</div>
+      <div style="font-size: 0.74rem; color: var(--navy-soft);">Bridges &amp; Structures Division</div>
     </div>
     <div style="text-align: right;">
       <div style="font-size: 0.8rem; color: var(--navy-faint);">Approved &amp; Verified</div>
-      <div style="font-weight: 700; margin-top: 24px;">Er. Rajesh Deshmukh</div>
+      <div style="font-weight: 700; margin-top: 24px;" id="repApproverName">Executive Authority</div>
       <div style="font-size: 0.74rem; color: var(--navy-soft);">Superintending Engineer, Bridges</div>
     </div>
   </div>
@@ -195,16 +195,19 @@
       document.getElementById('repMaterial').textContent = b.material;
       document.getElementById('repYear').textContent = b.construction_year;
       document.getElementById('repLife').textContent = `${b.design_life || 50} Years`;
-      document.getElementById('repContractor').textContent = b.contractor_name || 'Designated PWD Contractor';
+      document.getElementById('repContractor').textContent = b.contractor_name || 'Not Designated';
       document.getElementById('repScore').textContent = `${b.current_health_score} / 100`;
       document.getElementById('repStatus').textContent = b.current_health_status;
-      document.getElementById('reportDossierId').textContent = `DOSSIER #${b.bridge_id}-2026`;
+      document.getElementById('reportDossierId').textContent = `DOSSIER #${b.bridge_id}-${new Date().getFullYear()}`;
 
       // Fetch inspections
       const inspRes = await SetuApp.fetchApi(`/api/inspections?bridge_id=${b.id}`);
       const repInspDiv = document.getElementById('repInspectionContent');
       if (inspRes.success && inspRes.data && inspRes.data.length > 0) {
         const i = inspRes.data[0];
+        if (i.inspector && i.inspector.name) {
+          document.getElementById('repInspectorName').textContent = i.inspector.name;
+        }
         repInspDiv.innerHTML = `
           <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: flex-start;">
             <img src="${i.image_url}" class="report-evidence" alt="Photographic Evidence">
@@ -212,6 +215,7 @@
               <div class="spec-row"><span class="spec-label">Audit Date:</span><span class="spec-val mono">${i.inspection_date}</span></div>
               <div class="spec-row"><span class="spec-label">Crack Findings:</span><span class="spec-val mono">${i.crack_count} crack(s) identified</span></div>
               <div class="spec-row"><span class="spec-label">Assessed Severity:</span><span class="spec-val font-bold">${i.crack_severity.toUpperCase()}</span></div>
+              <div class="spec-row"><span class="spec-label">AI Detection Confidence:</span><span class="spec-val mono">${i.detection_confidence ? (i.detection_confidence * 100).toFixed(1) + '%' : (i.crack_count > 0 ? 'Verified' : '0.0%')} (YOLOv8)</span></div>
               <div class="spec-row"><span class="spec-label">Image Cloudinary Public ID:</span><span class="spec-val mono" style="font-size:0.75rem;">${i.cloudinary_public_id}</span></div>
               <div style="margin-top: 10px; font-size: 0.84rem; color: var(--navy-soft);">
                 <strong>Inspector Observations:</strong><br>${i.remarks || 'Routine structural condition verified.'}

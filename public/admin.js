@@ -333,43 +333,61 @@ async function deleteBridge(id, name) {
 // ----------------------------------------------------------------------------
 // INSPECTIONS TAB
 // ----------------------------------------------------------------------------
+let adminInspectionsCache = [];
+
 async function loadInspections() {
   try {
     const res = await SetuApp.fetchApi('/api/inspections');
     if (!res.success) return;
 
+    adminInspectionsCache = res.data || [];
     const tbody = document.getElementById('inspectionsTableBody');
     if (!tbody) return;
 
-    if (!res.data || res.data.length === 0) {
+    if (adminInspectionsCache.length === 0) {
       tbody.innerHTML = '<tr><td colspan="9" class="notif-empty">No inspection records logged yet</td></tr>';
       return;
     }
 
-    tbody.innerHTML = res.data.map(i => `
+    tbody.innerHTML = adminInspectionsCache.map((i, idx) => `
       <tr>
         <td>
-          <a href="${i.image_url}" target="_blank" rel="noopener">
-            <img src="${i.image_url}" alt="Inspection" style="width: 64px; height: 44px; object-fit: cover; border-radius: var(--radius-s); border: 1px solid var(--border);">
-          </a>
+          <button type="button" onclick="openAdminInspectionModal(${idx})" title="Click to view AI Detection Canvas" style="background: none; border: none; padding: 0; cursor: pointer; position: relative; display: block;">
+            <img src="${i.image_url}" alt="Inspection" style="width: 64px; height: 44px; object-fit: cover; border-radius: var(--radius-s); border: 1px solid var(--border); display: block;">
+            <span style="position: absolute; bottom: 2px; right: 2px; background: rgba(16,35,61,0.85); color: #fff; font-size: 0.6rem; padding: 1px 3px; border-radius: 2px; font-family: var(--font-mono);">AI</span>
+          </button>
         </td>
         <td>
           <strong>${i.bridge ? i.bridge.bridge_name : 'Unknown'}</strong>
           <div class="mono" style="font-size: 0.72rem; color: var(--navy-faint);">${i.bridge ? i.bridge.bridge_id : ''}</div>
         </td>
         <td class="mono">${i.inspection_date}</td>
-        <td class="mono">${i.crack_count}</td>
+        <td class="mono">
+          <div>${i.crack_count} cracks</div>
+          <div style="font-size: 0.72rem; color: var(--navy-soft);">${(i.images && i.images.length > 1) ? `${i.images.length} patches` : '1 patch'}</div>
+        </td>
         <td><span class="status ${SetuApp.getStatusClass(i.crack_severity)}">${i.crack_severity}</span></td>
         <td class="mono font-bold">${i.health_score}/100</td>
         <td><span class="status ${SetuApp.getStatusClass(i.health_status)}">${i.health_status}</span></td>
         <td style="max-width: 200px; font-size: 0.8rem; color: var(--navy-soft);">${i.remarks || '—'}</td>
-        <td>
-          <a href="/bridge-details?id=${i.bridge_id}" class="btn btn--ghost btn--sm" style="padding: 5px 9px; font-size: 0.78rem;">View Dossier</a>
+        <td style="white-space: nowrap;">
+          <button type="button" onclick="openAdminInspectionModal(${idx})" class="btn btn--primary btn--sm" style="padding: 4px 8px; font-size: 0.74rem; margin-right: 4px;">
+            Inspect AI (${(i.images && i.images.length) || 1})
+          </button>
+          <a href="/bridge-details?id=${i.bridge_id}" class="btn btn--ghost btn--sm" style="padding: 4px 8px; font-size: 0.74rem;">Dossier</a>
         </td>
       </tr>
     `).join('');
   } catch (err) {}
 }
+
+window.openAdminInspectionModal = function (idx) {
+  const item = adminInspectionsCache[idx];
+  if (item && window.SetuVisualAI) {
+    SetuVisualAI.openInspectionModal(item);
+  }
+};
+
 
 // ----------------------------------------------------------------------------
 // MAINTENANCE TAB

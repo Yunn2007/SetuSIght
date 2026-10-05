@@ -57,6 +57,32 @@ class DbService {
     return data;
   }
 
+  async getUsersByRole(role) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, role, contractor_id, created_at')
+      .eq('role', role);
+
+    if (error) {
+      throw new Error(`Database error fetching users by role: ${error.message}`);
+    }
+    return data || [];
+  }
+
+  async getUsersByContractorId(contractorId) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, role, contractor_id, created_at')
+      .eq('contractor_id', contractorId);
+
+    if (error) {
+      throw new Error(`Database error fetching users by contractor: ${error.message}`);
+    }
+    return data || [];
+  }
+
   // --------------------------------------------------------------------------
   // BRIDGES
   // --------------------------------------------------------------------------
@@ -229,7 +255,7 @@ class DbService {
     if (error) {
       throw new Error(`Database error fetching inspections: ${error.message}`);
     }
-    return data || [];
+    return (data || []).map(i => this._hydrateInspectionImages(i));
   }
 
   async getInspectionById(id) {
@@ -247,7 +273,36 @@ class DbService {
     if (error && error.code !== 'PGRST116') {
       throw new Error(`Database error fetching inspection: ${error.message}`);
     }
-    return data || null;
+    if (!data) return null;
+
+    // Check if inspection_images table has records for this session
+    try {
+      const { data: imgRows, error: imgErr } = await supabase
+        .from('inspection_images')
+        .select('*')
+        .eq('inspection_id', id)
+        .order('created_at', { ascending: true });
+
+      if (!imgErr && imgRows && imgRows.length > 0) {
+        data.images = imgRows.map(r => ({
+          id: r.id,
+          image_url: r.image_url,
+          cloudinary_public_id: r.cloudinary_public_id,
+          patch_label: r.patch_label || 'Patch',
+          image_dimensions: r.image_dimensions,
+          crack_count: r.crack_count,
+          crack_severity: r.crack_severity,
+          confidence: r.detection_confidence,
+          detections: r.detection_data?.detections || [],
+          local_condition_score: r.local_condition_score
+        }));
+        return data;
+      }
+    } catch (_) {
+      // Table may not exist yet; fall through to JSONB hydration
+    }
+
+    return this._hydrateInspectionImages(data);
   }
 
   async getInspectionsByBridgeId(bridgeId) {
@@ -272,21 +327,82 @@ class DbService {
     if (error) {
       throw new Error(`Database error fetching bridge inspections: ${error.message}`);
     }
-    return data || [];
+    return (data || []).map(i => this._hydrateInspectionImages(i));
+  }
+
+  _hydrateInspectionImages(inspection) {
+    if (!inspection) return inspection;
+    if (inspection.images && Array.isArray(inspection.images) && inspection.images.length > 0) {
+      return inspection;
+    }
+    if (inspection.detection_data && Array.isArray(inspection.detection_data.images) && inspection.detection_data.images.length > 0) {
+      inspection.images = inspection.detection_data.images;
+    } else {
+      // Synthesize 1-patch structure for historical inspections
+      inspection.images = [{
+        id: (inspection.id || 'patch') + '-patch-1',
+        image_url: inspection.image_url,
+        cloudinary_public_id: inspection.cloudinary_public_id,
+        patch_label: 'Patch 1 (Historical)',
+        crack_count: inspection.crack_count || 0,
+        crack_severity: inspection.crack_severity || 'none',
+        confidence: inspection.detection_confidence || 0.0,
+        detections: inspection.detection_data?.detections || [],
+        image_dimensions: inspection.detection_data?.image_dimensions || null,
+        local_condition_score: inspection.detection_data?.score_breakdown?.localScore || inspection.health_score || 100.0
+      }];
+    }
+    return inspection;
   }
 
   async createInspection(inspectionData) {
     const supabase = getSupabase();
+    let code = inspectionData.inspection_code;
+    if (!code) {
+      const { count } = await supabase.from('inspections').select('*', { count: 'exact', head: true });
+      code = `INS${String((count || 0) + 1).padStart(3, '0')}`;
+    }
+
+    // Separate patch_images if present so it doesn't fail table schema insert
+    const patchImages = inspectionData.patch_images || (inspectionData.detection_data && inspectionData.detection_data.images) || [];
+    const { patch_images, ...dbInspectionData } = inspectionData;
+
     const { data, error } = await supabase
       .from('inspections')
-      .insert([inspectionData])
+      .insert([{
+        ...dbInspectionData,
+        inspection_code: code
+      }])
       .select()
       .single();
 
     if (error) {
       throw new Error(`Database error saving inspection: ${error.message}`);
     }
-    return data;
+
+    // Optionally persist into inspection_images table if patches exist
+    if (patchImages.length > 0 && data && data.id) {
+      try {
+        const rowsToInsert = patchImages.map((p, idx) => ({
+          inspection_id: data.id,
+          image_url: p.image_url,
+          cloudinary_public_id: p.cloudinary_public_id || '',
+          patch_label: p.patch_label || `Patch ${idx + 1}`,
+          image_dimensions: p.image_dimensions || {},
+          crack_count: p.crack_count || 0,
+          crack_severity: p.crack_severity || 'none',
+          detection_confidence: p.confidence || 0.0,
+          detection_data: { detections: p.detections || [] },
+          local_condition_score: p.local_condition_score || 100.0
+        }));
+
+        await supabase.from('inspection_images').insert(rowsToInsert);
+      } catch (imgErr) {
+        console.warn('Note: inspection_images insert skipped or pending table migration:', imgErr.message);
+      }
+    }
+
+    return this._hydrateInspectionImages(data);
   }
 
   // --------------------------------------------------------------------------
@@ -380,9 +496,18 @@ class DbService {
 
   async createMaintenance(maintenanceData) {
     const supabase = getSupabase();
+    let code = maintenanceData.maintenance_code;
+    if (!code) {
+      const { count } = await supabase.from('maintenance').select('*', { count: 'exact', head: true });
+      code = `MNT${String((count || 0) + 1).padStart(3, '0')}`;
+    }
+
     const { data, error } = await supabase
       .from('maintenance')
-      .insert([maintenanceData])
+      .insert([{
+        ...maintenanceData,
+        maintenance_code: code
+      }])
       .select()
       .single();
 
@@ -492,10 +617,11 @@ class DbService {
         bridge:bridges (bridge_id, bridge_name)
       `)
       .order('created_at', { ascending: false })
-      .limit(30);
+      .limit(50);
 
     if (recipientId) {
-      query = query.eq('recipient_id', recipientId);
+      // Include notifications explicitly addressed to this user OR general broadcast alerts
+      query = query.or(`recipient_id.eq.${recipientId},recipient_id.is.null`);
     }
 
     const { data, error } = await query;
@@ -507,9 +633,18 @@ class DbService {
 
   async createNotification(notificationData) {
     const supabase = getSupabase();
+    let code = notificationData.notification_code;
+    if (!code) {
+      const { count } = await supabase.from('notifications').select('*', { count: 'exact', head: true });
+      code = `NOTIF${String((count || 0) + 1).padStart(4, '0')}`;
+    }
+
     const { data, error } = await supabase
       .from('notifications')
-      .insert([notificationData])
+      .insert([{
+        ...notificationData,
+        notification_code: code
+      }])
       .select()
       .single();
 
@@ -633,12 +768,17 @@ class DbService {
       if (insp.crack_severity === 'moderate') statusClass = 'status--moderate';
       if (insp.crack_severity === 'high' || insp.crack_severity === 'critical') statusClass = 'status--attention';
 
+      const patchCount = (insp.images && insp.images.length) || 1;
+      const affectedCount = (insp.images && insp.images.filter(p => p.crack_count > 0).length) || (insp.crack_count > 0 ? 1 : 0);
+
       timeline.push({
         id: `insp-${insp.id}`,
+        inspectionId: insp.id,
+        inspectionRecord: insp,
         type: 'inspection',
         date: insp.inspection_date,
-        title: `Visual & CV Inspection Logged`,
-        description: `Inspection recorded ${insp.crack_count} visible crack(s). Severity: ${insp.crack_severity.toUpperCase()}. Calculated Health Score: ${insp.health_score}/100. ${insp.remarks || ''}`,
+        title: patchCount > 1 ? `Multi-Patch CV Inspection (${patchCount} Patches)` : `Visual & CV Inspection Logged`,
+        description: `Inspection session analyzed ${patchCount} patch(es) (${affectedCount} affected, ${insp.crack_count} total cracks). Worst Severity: ${insp.crack_severity.toUpperCase()}. Holistic Bridge Health: ${insp.health_score}/100 (${insp.health_status}). ${insp.remarks || ''}`,
         badge: `Score: ${insp.health_score}`,
         imageUrl: insp.image_url,
         statusClass

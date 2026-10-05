@@ -11,8 +11,12 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-  if (allowedMimeTypes.includes(file.mimetype.toLowerCase())) {
+  const mime = (file.mimetype || '').toLowerCase();
+  const originalName = (file.originalname || '').toLowerCase();
+  const isImageMime = mime.startsWith('image/') || mime === 'application/octet-stream';
+  const hasImageExt = /\.(jpe?g|png|webp|jfif|avif|bmp|tiff)$/i.test(originalName);
+
+  if (isImageMime || hasImageExt) {
     cb(null, true);
   } else {
     const error = new Error('Invalid file format. Only JPEG, PNG, and WebP images are allowed.');

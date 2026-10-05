@@ -7,11 +7,11 @@ let allMaintenanceCache = [];
 let allBridgesCache = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const user = SetuApp.requireAuthRole('contractor');
+  const user = SetuApp.checkAuth(['contractor', 'admin']);
   if (!user) return;
 
+  SetuApp.initHeader(user);
   initSidebar();
-  initNotifs();
   initFormListeners();
 
   // Initial load
@@ -220,23 +220,21 @@ async function openBridgeMaintenanceModal(bridgeId) {
   const bridge = allBridgesCache.find(b => b.id === bridgeId);
   if (!bridge) return;
 
-  // Find maintenance work order for this bridge
+  // Find real maintenance work order for this bridge
   let maintItem = allMaintenanceCache.find(m => m.bridge_id === bridge.id);
-  if (!maintItem) {
-    // If not in cache, create representation
-    maintItem = {
-      id: bridge.maintenance_id || 'new',
-      bridge_id: bridge.id,
-      bridge: bridge,
-      priority: bridge.maintenance_priority || 'Medium',
-      scheduled_date: bridge.maintenance_scheduled_date || new Date().toISOString().split('T')[0],
-      status: bridge.maintenance_status === 'No Active Tasks' ? 'Scheduled' : bridge.maintenance_status,
-      remarks: bridge.maintenance_remarks || ''
-    };
-  } else {
-    maintItem.bridge = bridge;
+  if (!maintItem && bridge.maintenance_id) {
+    try {
+      const res = await SetuApp.fetchApi(`/api/maintenance/${bridge.maintenance_id}`);
+      if (res.success && res.data) maintItem = res.data;
+    } catch (e) {}
   }
 
+  if (!maintItem) {
+    SetuApp.showToast('No active maintenance work order assigned for this bridge.', 'info');
+    return;
+  }
+
+  maintItem.bridge = maintItem.bridge || bridge;
   populateMaintenanceModal(maintItem);
   openModal('viewMaintenanceModal');
 }
@@ -317,66 +315,6 @@ function initFormListeners() {
   });
 }
 
-// ----------------------------------------------------------------------------
-// NOTIFICATIONS
-// ----------------------------------------------------------------------------
-async function initNotifs() {
-  const btn = document.getElementById('notifBellBtn');
-  const dropdown = document.getElementById('notifDropdown');
-  if (!btn || !dropdown) return;
-
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdown.classList.toggle('is-open');
-    loadNotifications();
-  });
-
-  document.addEventListener('click', () => {
-    dropdown.classList.remove('is-open');
-  });
-
-  document.getElementById('markAllReadBtn')?.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    try {
-      await SetuApp.fetchApi('/api/notifications/read-all', { method: 'PUT' });
-      loadNotifications();
-    } catch (err) {}
-  });
-
-  loadNotifications();
-}
-
-async function loadNotifications() {
-  try {
-    const res = await SetuApp.fetchApi('/api/notifications');
-    if (!res.success) return;
-
-    const list = res.data || [];
-    const unread = list.filter(n => !n.is_read).length;
-
-    const badge = document.getElementById('notifBadge');
-    if (badge) {
-      badge.style.display = unread > 0 ? 'block' : 'none';
-      badge.textContent = unread;
-    }
-
-    const container = document.getElementById('notifList');
-    if (!container) return;
-
-    if (list.length === 0) {
-      container.innerHTML = '<div class="notif-empty">No work order notifications</div>';
-      return;
-    }
-
-    container.innerHTML = list.map(n => `
-      <div class="notif-item ${n.is_read ? '' : 'is-unread'}">
-        <div class="notif-item__title">${n.title}</div>
-        <div class="notif-item__msg">${n.message}</div>
-        <div class="notif-item__time">${new Date(n.created_at).toLocaleDateString()}</div>
-      </div>
-    `).join('');
-  } catch (err) {}
-}
 
 // ----------------------------------------------------------------------------
 // MODAL HELPERS

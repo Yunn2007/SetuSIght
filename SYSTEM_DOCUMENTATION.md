@@ -245,63 +245,89 @@ erDiagram
 
 ---
 
-## 3. Structural Health Assessment Engine (Mathematical Model)
+## 3. Structural Health Assessment Engine (Phase 3A Multi-Patch Architecture)
 
-The Health Assessment Engine ([src/services/healthService.js](file:///Users/yunuskhan/Desktop/SetuSIght/src/services/healthService.js)) computes deterministic structural health scores ($S \in [0, 100]$).
+The Health Assessment Engine ([src/services/healthService.js](file:///Users/yunuskhan/Desktop/SetuSIght/src/services/healthService.js)) enforces a strict 3-tier civil engineering condition hierarchy:
 
 ```mermaid
-graph LR
-    Base[Base Baseline: 100.0] --> Deductions[Apply Structural Deductions]
-    Deductions --> Crack[1. Visual Crack Findings Penalty]
-    Deductions --> Age[2. Age-to-Design-Life Degradation]
-    Deductions --> Material[3. Material Vulnerability Factor]
-    Deductions --> Env[4. Environmental Exposure Factor]
-    Deductions --> Maintenance[5. Maintenance Recovery Boost]
-    Crack & Age & Material & Env & Maintenance --> FinalScore[Calibrated Health Score & Status]
+graph TD
+    subgraph Tier 1: Local Concrete Observation
+        Img1[Patch 1 Image] --> YOLO1[YOLOv8 Inference] --> P1[Patch Condition C_1]
+        Img2[Patch 2 Image] --> YOLO2[YOLOv8 Inference] --> P2[Patch Condition C_2]
+        ImgN[Patch N Image] --> YOLON[YOLOv8 Inference] --> PN[Patch Condition C_N]
+    end
+
+    subgraph Tier 2: Inspection Session Aggregation
+        P1 & P2 & PN --> Agg[Deterministic Session Aggregation]
+        Agg --> SessionCond[Session Condition Score C_session]
+        Agg --> WorstSev[Worst Observed Severity S_worst]
+    end
+
+    subgraph Tier 3: Holistic Bridge Asset Health
+        SessionCond --> BridgeModel[Holistic Civil Engineering Model]
+        WorstSev --> BridgeModel
+        Age[Bridge Age & Design Life] --> BridgeModel
+        Material[Material Vulnerability] --> BridgeModel
+        Exposure[Environmental & Traffic Exposure] --> BridgeModel
+        Maintenance[Maintenance Track Record & Overdue Penalty] --> BridgeModel
+        Trend[Historical Inspection Trajectory] --> BridgeModel
+        BridgeModel --> BridgeHealth[Bridge Health Score H_bridge & Unified Status]
+        BridgeModel --> Priority[Maintenance Priority: Low / Medium / High / Urgent]
+    end
 ```
 
 ### 3.1 Mathematical Formulations
 
-$$\text{Health Score } (S) = \operatorname{clamp}\Big(100.0 - (D_{\text{crack}} + D_{\text{age}} + D_{\text{env}}) + B_{\text{maint}},\, 5.0,\, 100.0\Big)$$
+#### 1. Local Patch Condition ($C_{\text{patch}, i} \in [10, 100]$)
+For each inspected image patch $i$:
+$$C_{\text{patch}, i} = \max\Big(10.0,\, \min\big(100.0,\, 100.0 - (D_{\text{sev}} + D_{\text{count}})\big)\Big)$$
+- Severity deduction ($D_{\text{sev}}$): `none`: $0$, `low`: $8$, `moderate`: $20$, `high`: $34$, `critical`: $48$
+- Crack count deduction ($D_{\text{count}}$): $\min(N_{\text{cracks}, i} \times 2.0, 15.0)$
 
-#### 1. Crack Impact Deduction ($D_{\text{crack}}$)
-$$D_{\text{crack}} = P_{\text{severity}} + (\min(N_{\text{cracks}}, 15) \times 1.8)$$
-Where $P_{\text{severity}}$ is determined by structural inspection findings:
-- `none`: $0.0$
-- `low`: $6.0$
-- `moderate`: $16.0$
-- `high`: $28.0$
-- `critical`: $38.0$
+#### 2. Inspection Session Condition ($C_{\text{session}} \in [10, 100]$)
+Aggregates $N$ inspected patches across the bridge structure:
+- Affected patch ratio: $R_{\text{affected}} = \frac{N_{\text{affected}}}{N}$
+- Raw blended condition: $C_{\text{raw}} = 0.55 \cdot \bar{C}_{\text{patch}} + 0.45 \cdot \min_i(C_{\text{patch}, i})$
+- Structural spread penalty: $\Delta_{\text{spread}} = R_{\text{affected}} \times 8.0$
+- Base score: $C_{\text{session}} = \max(10.0, \min(100.0, C_{\text{raw}} - \Delta_{\text{spread}}))$
+- **Worst Severity Safety Caps:**
+  - If $S_{\text{worst}} = \text{'critical'}$: $C_{\text{session}} \le 55.0$ (Hotspot override prevents clean patches from masking severe failure)
+  - If $S_{\text{worst}} = \text{'high'}$: $C_{\text{session}} \le 72.0$
+  - If $S_{\text{worst}} = \text{'moderate'}$: $C_{\text{session}} \le 82.0$
 
-#### 2. Age-to-Design-Life Penalty ($D_{\text{age}}$)
-$$\text{Age Ratio } (R) = \frac{\max(0, \text{Current Year} - \text{Construction Year})}{\text{Design Life}}$$
-$$D_{\text{age}} = \begin{cases}
-R \times 12.0 & \text{if } R \le 0.5 \\
-6.0 + (R - 0.5) \times 22.0 & \text{if } 0.5 < R \le 1.0 \\
-17.0 + (R - 1.0) \times 32.0 & \text{if } R > 1.0 \text{ (Overaged Structure)}
-\end{cases}$$
+#### 3. Holistic Bridge-Level Health Score ($H_{\text{bridge}} \in [10, 100]$)
+Integrates visual evidence with asset-level structural attributes without double-counting:
+$$H_{\text{bridge}} = \operatorname{clamp}\Big(100.0 - D_{\text{defect}} - D_{\text{age}} - D_{\text{material}} - D_{\text{exposure}} + \Delta_{\text{maintenance}} + \Delta_{\text{trend}},\, 10.0,\, 100.0\Big)$$
 
-#### 3. Material & Environmental Exposure Multiplier ($D_{\text{env}}$)
-$$D_{\text{env}} = M_{\text{material}} + E_{\text{location}}$$
-- **Material Factor ($M_{\text{material}}$):**
-  - `Structural Steel`: $+3.5$ (Susceptible to corrosion in coastal environments)
-  - `Reinforced Concrete`: $+2.0$ (Susceptible to spalling and carbonation)
-  - `Prestressed Concrete`: $+0.5$ (High-integrity baseline)
-  - `Composite`: $+1.5$
-- **Environmental Exposure ($E_{\text{location}}$):**
-  - Coastal / Creek / Marine (`Creek`, `Creek Bridge`): $+4.0$ (High salinity)
-  - Heavy Traffic Corridor (`Flyover`, `ROB`, `Palm Beach`): $+2.5$ (Dynamic cyclic load)
-  - Standard Urban Road: $+1.0$
+- **Physical Defect Deduction ($D_{\text{defect}}$):** Derived directly from session condition:
+  $$D_{\text{defect}} = (100.0 - C_{\text{session}}) \times 0.45 \quad (\le 40.5\text{ pts})$$
+- **Age vs. Design Life Ratio ($D_{\text{age}}$):**
+  $$\text{Age Ratio } (R) = \frac{\max(0, \text{Current Year} - \text{Construction Year})}{\text{Design Life}}$$
+  $$D_{\text{age}} = \begin{cases}
+  R \times 4.0 & \text{if } R \le 0.2 \\
+  10.0 \times (R - 0.3) & \text{if } 0.2 < R \le 0.5 \\
+  18.0 \times (R - 0.5) & \text{if } R > 0.8 \quad (\le 22.0\text{ pts})
+  \end{cases}$$
+- **Material Vulnerability ($D_{\text{material}}$):** Steel ($+4.0$), Underpass/Culvert/Masonry ($+5.0$), Composite ($+3.0$), Prestressed Concrete ($+1.0$).
+- **Environmental Exposure ($D_{\text{exposure}}$):** Saline Marine / Creek ($+5.0$), Heavy Traffic / Dynamic Vibration ($+3.0$), Standard Urban ($+1.0$).
+- **Maintenance History Offset ($\Delta_{\text{maintenance}}$):** $+5.0$ if completed within service window; $-6.0$ penalty if overdue.
+- **Historical Deterioration Trend ($\Delta_{\text{trend}}$):** Expert-informed trend adjustment based on past inspection scores: $-3.0$ if progressive decline observed; $+2.0$ if confirmed post-repair improvement.
 
-#### 4. Maintenance Offset Boost ($B_{\text{maint}}$)
-For each completed maintenance work order within the last 3 years:
-$$B_{\text{maint}} = \min\Big(\sum \text{Boost}_{\text{completed}},\, 15.0\Big)$$
-
-### 3.2 Categorical Health Status Mapping
+### 3.2 Authoritative Categorical Health Status & Safety Overrides
 $$\text{Health Status} = \begin{cases}
-\mathbf{Good} & \text{if } S \ge 80.0 \\
-\mathbf{Moderate} & \text{if } 60.0 \le S < 80.0 \\
-\mathbf{Attention\ Required} & \text{if } S < 60.0
+\mathbf{Attention\ Required} & \text{if } H_{\text{bridge}} < 60.0 \text{ or } S_{\text{worst}} = \text{'critical'} \\
+\mathbf{Moderate} & \text{if } 60.0 \le H_{\text{bridge}} < 80.0 \text{ or } S_{\text{worst}} = \text{'high'} \\
+\mathbf{Good} & \text{if } H_{\text{bridge}} \ge 80.0 \text{ and } S_{\text{worst}} \notin \{\text{'high'}, \text{'critical'}\}
+\end{cases}$$
+*Authoritative Safety Override:* If $S_{\text{worst}} = \text{'critical'}$, the bridge score is capped at $\le 58.0$ and forced to `Attention Required`. If $S_{\text{worst}} = \text{'high'}$, the bridge score is capped at $\le 74.0$ and forced to at most `Moderate`.
+
+### 3.3 Maintenance Priority Determination
+Independent from health score to determine urgency of intervention:
+$$\text{Priority} = \begin{cases}
+\mathbf{Urgent} & \text{if } S_{\text{worst}} = \text{'critical'} \text{ or } H_{\text{bridge}} < 45.0 \text{ or (Overdue and } H_{\text{bridge}} < 60.0) \\
+\mathbf{High} & \text{if } S_{\text{worst}} = \text{'high'} \text{ or } H_{\text{bridge}} < 60.0 \text{ or (Overdue and } H_{\text{bridge}} < 75.0) \\
+\mathbf{Medium} & \text{if } S_{\text{worst}} = \text{'moderate'} \text{ or } H_{\text{bridge}} < 78.0 \\
+\mathbf{Low} & \text{otherwise}
 \end{cases}$$
 
 ---
@@ -538,7 +564,7 @@ public/
 ├── landing.js            # Live Bridge Network dynamic API loader
 ├── app.css               # Clean Engineering Dashboard Design System
 ├── app.js                # Core Application Framework (Auth, Notifications, Toasts)
-├── login.html & .js      # Role-Based Login Portal with 1-Click Demo Fillers
+├── login.html             # Role-Based Authentication Portal
 ├── admin.html & .js      # Executive Admin Console (Overview, CRUD, Maintenance, Analytics)
 ├── inspector.html & .js  # Field Inspector Portal (Photo Upload, Health Recalibration)
 ├── contractor.html & .js # Contractor Portal (Assigned Tasks, Bridges, Completed Repairs)

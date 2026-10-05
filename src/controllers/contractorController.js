@@ -10,7 +10,22 @@ class ContractorController {
    */
   async getAllContractors(req, res, next) {
     try {
-      const contractors = await dbService.getAllContractors();
+      let contractors = await dbService.getAllContractors();
+
+      // Strict Contractor Role Guard: Contractor only sees their own firm
+      if (req.user && req.user.role === 'contractor') {
+        let contractorId = req.user.contractor_id;
+        if (!contractorId) {
+          const userRecord = await dbService.getUserById(req.user.id);
+          contractorId = userRecord?.contractor_id;
+          if (!contractorId && req.user.email) {
+            const cRecord = await dbService.getContractorByEmail(req.user.email);
+            contractorId = cRecord?.id;
+          }
+        }
+        contractors = contractors.filter(c => c.id === contractorId);
+      }
+
       const allBridges = await dbService.getAllBridges();
       const allMaintenance = await dbService.getAllMaintenance();
 
@@ -47,6 +62,25 @@ class ContractorController {
    */
   async getContractorById(req, res, next) {
     try {
+      // Strict Contractor Access Guard
+      if (req.user && req.user.role === 'contractor') {
+        let contractorId = req.user.contractor_id;
+        if (!contractorId) {
+          const userRecord = await dbService.getUserById(req.user.id);
+          contractorId = userRecord?.contractor_id;
+          if (!contractorId && req.user.email) {
+            const cRecord = await dbService.getContractorByEmail(req.user.email);
+            contractorId = cRecord?.id;
+          }
+        }
+        if (!contractorId || contractorId !== req.params.id) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied: You are only authorized to view your own contractor record'
+          });
+        }
+      }
+
       const contractor = await dbService.getContractorById(req.params.id);
       if (!contractor) {
         return res.status(404).json({

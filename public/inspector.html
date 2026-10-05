@@ -120,11 +120,12 @@
                     <input type="date" id="insp_date_input" class="form-input" required>
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="insp_severity_input">Field Crack Severity Assessment *</label>
-                    <select id="insp_severity_input" class="form-select" required>
+                    <label class="form-label" for="insp_severity_input">Field Crack Severity Assessment</label>
+                    <select id="insp_severity_input" class="form-select">
+                      <option value="auto" selected>Auto-Evaluated by YOLOv8 Model</option>
                       <option value="none">None (No Visible Cracks)</option>
                       <option value="low">Low (Hairline Surface Cracks &lt; 0.2mm)</option>
-                      <option value="moderate" selected>Moderate (Longitudinal / Span Fissures)</option>
+                      <option value="moderate">Moderate (Longitudinal / Span Fissures)</option>
                       <option value="high">High (Severe Diagonal Shear Cracks)</option>
                       <option value="critical">Critical (Spalling &amp; Rebar Exposure)</option>
                     </select>
@@ -132,20 +133,21 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label" for="insp_crack_count">Visible Crack Count (Estimated / Counted)</label>
-                  <input type="number" id="insp_crack_count" class="form-input" value="2" min="0" max="50">
+                  <label class="form-label" for="insp_crack_count">Visible Crack Count (Leave blank for YOLOv8 automated detection)</label>
+                  <input type="number" id="insp_crack_count" class="form-input" placeholder="Automatically detected by YOLOv8 (ml/best.pt)" min="0" max="50">
                 </div>
 
-                <!-- Drag & Drop Upload Dropzone -->
+                <!-- Drag & Drop Multi-Image Upload Dropzone -->
                 <div class="form-group">
-                  <label class="form-label">Inspection Photo Evidence (Uploaded to Cloudinary) *</label>
+                  <label class="form-label">Inspection Concrete Imagery (Upload 1 or more patch photos to Cloudinary) *</label>
                   <div class="upload-dropzone" id="dropzoneBox">
                     <svg class="upload-dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    <div class="upload-dropzone__text">Click or drag bridge inspection photo here</div>
-                    <div class="upload-dropzone__sub">Supports JPEG, PNG, WebP up to 10MB</div>
-                    <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" required>
-                    <img id="imagePreview" class="upload-preview" alt="Inspection Preview">
+                    <div class="upload-dropzone__text">Click or drag bridge inspection patch photos here</div>
+                    <div class="upload-dropzone__sub">Upload 1 or more photos of different concrete spans/piers (JPEG, PNG, WebP up to 10MB each)</div>
+                    <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp,image/*" multiple>
                   </div>
+                  <!-- Multi-Patch Preview Grid -->
+                  <div id="multiPatchPreviewGrid" style="display: none; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 14px;"></div>
                 </div>
 
                 <div class="form-group">
@@ -154,7 +156,7 @@
                 </div>
 
                 <button type="submit" id="submitInspectionBtn" class="btn btn--primary" style="width: 100%; margin-top: 8px;">
-                  Submit Inspection &amp; Calculate Health <span class="arrow">→</span>
+                  Analyze Inspection Session (YOLOv8) <span class="arrow">→</span>
                 </button>
               </form>
             </div>
@@ -162,7 +164,7 @@
 
           <!-- AI Model Notice & Live Result Preview -->
           <div>
-            <!-- AI Placeholder Info Box -->
+            <!-- AI Active Info Box -->
             <div class="card" style="border-left: 4px solid var(--green);">
               <div class="card__header">
                 <div>
@@ -171,9 +173,11 @@
                 </div>
               </div>
               <div class="card__body">
-                <div style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-s); font-family: var(--font-mono); font-size: 0.76rem; margin-bottom: 12px;">
-                  <code>Status: AI analysis module pending integration</code><br>
-                  <span style="color: var(--navy-faint);">YOLOv8 inference will evaluate crack density and bounding boxes on Cloudinary URLs.</span>
+                <div style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-s); font-family: var(--font-mono); font-size: 0.76rem; margin-bottom: 12px; border: 1px solid var(--border);">
+                  <div style="color: var(--green-dark); font-weight: 700; margin-bottom: 4px;">● YOLOv8 Crack Engine: ONLINE</div>
+                  <div style="color: var(--navy);">Weights: <code>ml/best.pt</code></div>
+                  <div style="color: var(--navy-soft);">Threshold: <strong>0.35</strong> (Phase 2A.1 Validated)</div>
+                  <div style="color: var(--navy-soft); margin-top: 4px;">Cloud Storage: <strong>Cloudinary Direct</strong></div>
                 </div>
                 <p style="font-size: 0.84rem; color: var(--navy-soft); line-height: 1.45;">
                   Rule-based health scoring combines crack severity, bridge age/design life ratio, material factors, and historical repairs.
@@ -181,7 +185,7 @@
               </div>
             </div>
 
-            <!-- Last Submitted Inspection Result -->
+            <!-- Last Submitted Inspection Result Preview Card (fallback) -->
             <div class="card" id="lastResultCard" style="display:none;">
               <div class="card__header">
                 <div>
@@ -194,6 +198,17 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Full Phase 2B Visual AI Inspection Result View (Rendered after submission) -->
+        <div id="inspectionResultContainer" style="display: none; margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <button type="button" id="btnBackToForm" class="btn btn--ghost btn--sm">
+              ← Log Another Bridge Inspection
+            </button>
+            <div id="resultDossierLinkWrap"></div>
+          </div>
+          <div id="inspectionResultMount"></div>
         </div>
       </section>
 
@@ -243,7 +258,7 @@
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Photo</th>
+                    <th>Photo Evidence</th>
                     <th>Bridge</th>
                     <th>Date</th>
                     <th>Cracks</th>
@@ -251,6 +266,7 @@
                     <th>Score</th>
                     <th>Health Status</th>
                     <th>Remarks</th>
+                    <th>AI Telemetry</th>
                   </tr>
                 </thead>
                 <tbody id="inspectorHistoryTable">
@@ -267,6 +283,7 @@
 </div>
 
 <script src="app.js"></script>
+<script src="visual-ai-canvas.js"></script>
 <script src="inspector.js"></script>
 </body>
 </html>

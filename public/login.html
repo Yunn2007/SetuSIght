@@ -36,43 +36,6 @@
     margin-bottom: 24px;
     justify-content: center;
   }
-  .demo-pills {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
-  .demo-pills__title {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--navy-faint);
-    font-weight: 600;
-    margin-bottom: 10px;
-    text-align: center;
-    font-family: var(--font-mono);
-  }
-  .demo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .demo-btn {
-    padding: 8px 6px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    text-align: center;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-s);
-    background: var(--bg-alt);
-    color: var(--navy);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .demo-btn:hover {
-    background: var(--green-tint);
-    border-color: var(--green);
-    color: var(--green-dark);
-  }
   .back-home {
     margin-top: 20px;
     font-size: 0.84rem;
@@ -121,20 +84,30 @@
       </button>
     </form>
 
-    <div class="demo-pills">
-      <div class="demo-pills__title">Quick Demo Login</div>
-      <div class="demo-grid">
-        <button type="button" class="demo-btn" onclick="quickFill('admin@setusight.gov.in', 'admin123')">
-          Admin (PWD)
+    <!-- DIRECT ONE-CLICK ROLE SIGN-IN -->
+    <div class="demo-pills" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+      <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--navy-faint); font-weight: 700; margin-bottom: 12px; text-align: center; font-family: var(--font-mono);">
+        ⚡ Instant Role Sign-In (1-Click Auto Login)
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <button type="button" class="btn btn--ghost btn--sm" onclick="loginDirectly('admin@setusight.gov.in', 'admin123', 'admin')" style="padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: var(--radius-s); background: var(--bg-alt); text-align: center;">
+          <span style="font-size: 1.15rem;">🛡️</span>
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--navy);">Admin</span>
+          <span style="font-size: 0.65rem; color: var(--navy-faint); font-family: var(--font-mono);">PWD Authority</span>
         </button>
-        <button type="button" class="demo-btn" onclick="quickFill('inspector@setusight.gov.in', 'inspect123')">
-          Inspector
+        <button type="button" class="btn btn--ghost btn--sm" onclick="loginDirectly('inspector@setusight.gov.in', 'inspect123', 'inspector')" style="padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: var(--radius-s); background: var(--bg-alt); text-align: center;">
+          <span style="font-size: 1.15rem;">🔍</span>
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--navy);">Inspector</span>
+          <span style="font-size: 0.65rem; color: var(--navy-faint); font-family: var(--font-mono);">Field Inspection</span>
         </button>
-        <button type="button" class="demo-btn" onclick="quickFill('contractor@setusight.gov.in', 'contract123')">
-          Contractor
+        <button type="button" class="btn btn--ghost btn--sm" onclick="loginDirectly('contractor@setusight.gov.in', 'contract123', 'contractor')" style="padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: var(--radius-s); background: var(--bg-alt); text-align: center;">
+          <span style="font-size: 1.15rem;">🏗️</span>
+          <span style="font-weight: 700; font-size: 0.82rem; color: var(--navy);">Contractor</span>
+          <span style="font-size: 0.65rem; color: var(--navy-faint); font-family: var(--font-mono);">Repairs &amp; Orders</span>
         </button>
       </div>
     </div>
+
   </div>
 
   <a href="/" class="back-home">
@@ -144,19 +117,13 @@
 
 <script src="app.js"></script>
 <script>
-  function quickFill(email, password) {
+  async function loginDirectly(email, password, roleLabel) {
     document.getElementById('email').value = email;
     document.getElementById('password').value = password;
-  }
 
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
     const submitBtn = document.getElementById('submitBtn');
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
     submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Authenticating...';
+    submitBtn.innerHTML = `Signing in as ${roleLabel ? roleLabel.toUpperCase() : 'User'}...`;
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -168,23 +135,39 @@
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Login failed. Check your credentials.');
+        throw new Error(data.error || 'Authentication failed');
       }
 
       SetuApp.setSession(data.token, data.user);
-      SetuApp.showToast(`Welcome back, ${data.user.name}`, 'success');
+      SetuApp.showToast(`Welcome back, ${data.user.name} (${data.user.role.toUpperCase()})`, 'success');
 
       setTimeout(() => {
         if (data.user.role === 'admin') window.location.href = '/admin';
         else if (data.user.role === 'inspector') window.location.href = '/inspector';
         else if (data.user.role === 'contractor') window.location.href = '/contractor';
         else window.location.href = '/';
-      }, 500);
+      }, 300);
     } catch (err) {
       SetuApp.showToast(err.message, 'error');
       submitBtn.disabled = false;
       submitBtn.innerHTML = 'Sign In to Portal <span class="arrow">→</span>';
     }
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    loginDirectly(email, password);
+  });
+
+  // Check URL param ?role=admin etc. for instant one-click login from external links
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const roleParam = params.get('role');
+    if (roleParam === 'admin') loginDirectly('admin@setusight.gov.in', 'admin123', 'admin');
+    else if (roleParam === 'inspector') loginDirectly('inspector@setusight.gov.in', 'inspect123', 'inspector');
+    else if (roleParam === 'contractor') loginDirectly('contractor@setusight.gov.in', 'contract123', 'contractor');
   });
 </script>
 </body>

@@ -9,16 +9,17 @@ const { requireRole } = require('../src/middleware/authMiddleware');
 async function runTests() {
   console.log('🧪 Starting SetuSight Architecture & Service Verification Tests...\n');
 
-  // Test 1: ML Service Isolation & Placeholder Contract
-  console.log('Test 1: ML Service Contract Verification');
-  const mlOutput = await mlService.analyzeBridgeImage('https://res.cloudinary.com/c3wesoc5/image/upload/v1787335079/setusight/inspections/bridge_crack_nerul_pier_01.jpg');
-  assert.strictEqual(mlOutput.isMock, true, 'isMock flag should be true');
-  assert.strictEqual(mlOutput.status, 'AI analysis module pending integration', 'Status must indicate pending YOLOv8 integration');
-  assert.strictEqual(mlOutput.crackDetected, false);
-  assert.strictEqual(mlOutput.crackCount, 0);
-  assert.strictEqual(mlOutput.confidence, 0.0);
+  // Test 1: Real YOLOv8 ML Service Integration Verification
+  console.log('Test 1: Real YOLOv8 ML Service Integration Verification');
+  const mlOutput = await mlService.analyzeBridgeImage('ml/test_samples/crack_sample.jpg');
+  assert.strictEqual(mlOutput.isMock, false, 'isMock flag should be false for real model');
+  assert.strictEqual(mlOutput.status, 'AI analysis completed');
+  assert.strictEqual(mlOutput.crackDetected, true);
+  assert(mlOutput.crackCount > 0, 'Crack count should be > 0');
+  assert(mlOutput.confidence > 0, 'Confidence should be > 0');
   assert(Array.isArray(mlOutput.detections), 'detections should be an array');
-  console.log('  ✅ ML Service placeholder conforms strictly to architectural requirements.\n');
+  assert(mlOutput.detections.length > 0, 'detections should contain real detected boxes');
+  console.log(`  ✅ Real YOLOv8 Service verified: ${mlOutput.crackCount} cracks detected with ${(mlOutput.confidence * 100).toFixed(1)}% confidence.\n`);
 
   // Test 2: Health Assessment Engine (Rule-based)
   console.log('Test 2: Rule-Based Health Assessment Engine');

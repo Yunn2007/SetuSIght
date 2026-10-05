@@ -92,35 +92,34 @@
     attention:          { label: "Attention Required", cls: "status--attention" }
   };
 
-  var fallbackRecords = [
-    { id: "BR001", name: "Nerul Creek Bridge",        area: "Nerul",       condition: "Good",               lastInspection: "12 Jun 2026", status: "Under Maintenance" },
-    { id: "BR002", name: "Palm Beach Road Flyover",    area: "Nerul",       condition: "Moderate",           lastInspection: "03 Jun 2026", status: "Up to date" },
-    { id: "BR003", name: "Seawoods Rail Overbridge",   area: "Seawoods",    condition: "Attention Required", lastInspection: "28 May 2026", status: "Assigned" },
-    { id: "BR004", name: "Seawoods Grand Central FOB", area: "Seawoods",    condition: "Good",               lastInspection: "19 Jun 2026", status: "Up to date" },
-    { id: "BR005", name: "Belapur Bridge No. 2",       area: "CBD Belapur", condition: "Moderate",           lastInspection: "07 Jun 2026", status: "Up to date" },
-    { id: "BR006", name: "Sector 11 Pedestrian Bridge",area: "CBD Belapur", condition: "Good",               lastInspection: "22 May 2026", status: "Up to date" },
-    { id: "BR007", name: "Nerul West Underpass",       area: "Nerul",       condition: "Attention Required", lastInspection: "15 Apr 2026", status: "Assigned" },
-    { id: "BR008", name: "Seawoods–Darave Link",       area: "Seawoods",    condition: "Good",               lastInspection: "30 Jun 2026", status: "Up to date" },
-    { id: "BR009", name: "Belapur CBD Flyover",        area: "CBD Belapur", condition: "Moderate",           lastInspection: "11 Jun 2026", status: "Up to date" },
-    { id: "BR010", name: "Nerul Sector 20 Bridge",     area: "Nerul",       condition: "Good",               lastInspection: "24 Jun 2026", status: "Up to date" }
-  ];
+  function renderBridgeEmpty(message) {
+    var tbody = document.getElementById("bridgeTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--navy-soft); padding: 24px;">' + (message || 'No records found') + '</td></tr>';
+  }
 
   function renderBridgeTable(records) {
     var tbody = document.getElementById("bridgeTableBody");
     if (!tbody) return;
 
+    if (!records || records.length === 0) {
+      renderBridgeEmpty('No records found');
+      return;
+    }
+
     var rows = records.map(function (b) {
-      var c = conditionMap[b.current_health_status || b.condition] || { label: b.current_health_status || b.condition || "Unknown", cls: "status--moderate" };
-      var statusText = b.status || (b.current_health_status === "Good" ? "Up to date" : (b.current_health_status === "Attention Required" ? "Assigned" : "Scheduled"));
-      var statusCls = (statusText.toLowerCase().includes("maintenance") || statusText.toLowerCase().includes("assigned")) ? "status--maintenance" : (statusText.toLowerCase().includes("up to date") ? "status--good" : "status--moderate");
+      var c = conditionMap[b.current_health_status] || { label: b.current_health_status || "Unknown", cls: "status--moderate" };
+      var statusText = b.maintenance_status || (b.current_health_status === "Good" ? "Up to date" : (b.current_health_status === "Attention Required" ? "Assigned" : "Scheduled"));
+      var statusCls = (statusText.toLowerCase().includes("maintenance") || statusText.toLowerCase().includes("assigned") || statusText.toLowerCase().includes("progress")) ? "status--maintenance" : (statusText.toLowerCase().includes("up to date") || statusText.toLowerCase().includes("completed") ? "status--good" : (statusText.toLowerCase().includes("overdue") ? "status--attention" : "status--moderate"));
+      var inspectionOrMaintDate = b.maintenance_scheduled_date ? new Date(b.maintenance_scheduled_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (b.last_maintenance_date ? new Date(b.last_maintenance_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : "Active");
 
       return (
         "<tr>" +
-        '<td class="mono">' + (b.bridge_id || b.id) + "</td>" +
-        "<td><strong>" + (b.bridge_name || b.name) + "</strong></td>" +
-        "<td>" + (b.location || b.area) + "</td>" +
+        '<td class="mono">' + (b.bridge_id || '') + "</td>" +
+        "<td><strong>" + (b.bridge_name || '') + "</strong></td>" +
+        "<td>" + (b.location || '') + "</td>" +
         '<td><span class="status ' + c.cls + '">' + c.label + "</span></td>" +
-        '<td class="mono">' + (b.lastInspection || "Active") + "</td>" +
+        '<td class="mono">' + inspectionOrMaintDate + "</td>" +
         '<td><span class="status ' + statusCls + '">' + statusText + "</span></td>" +
         "</tr>"
       );
@@ -139,11 +138,11 @@
       if (result.success && result.data && result.data.length > 0) {
         renderBridgeTable(result.data);
       } else {
-        renderBridgeTable(fallbackRecords);
+        renderBridgeEmpty('No records found');
       }
     })
     .catch(function () {
-      renderBridgeTable(fallbackRecords);
+      renderBridgeEmpty('No data available');
     });
 
   /* ---------- Navbar shadow on scroll ---------- */

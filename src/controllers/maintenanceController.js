@@ -201,8 +201,8 @@ class MaintenanceController {
 
           const assessment = healthService.calculateHealthAssessment(
             bridge,
-            { crack_severity: latestInsp.crack_severity || 'none', crack_count: latestInsp.crack_count || 0 },
-            { recentMaintenance: pastMaintenance }
+            latestInsp.images && latestInsp.images.length > 0 ? latestInsp.images : { crack_severity: latestInsp.crack_severity || 'none', crack_count: latestInsp.crack_count || 0 },
+            { recentMaintenance: pastMaintenance, pastInspections: inspections }
           );
 
           await dbService.updateBridge(bridge.id, {
@@ -210,13 +210,8 @@ class MaintenanceController {
             current_health_status: assessment.healthStatus
           });
 
-          // Alert notification
-          await notificationService.notify({
-            bridgeId: bridge.id,
-            type: 'maintenance_completed',
-            title: `Maintenance Completed: ${bridge.bridge_name}`,
-            message: `Contractor marked maintenance as completed. Health score recalibrated to ${assessment.healthScore}.`
-          });
+          // Alert notification dispatched to all real admins
+          await notificationService.notifyMaintenanceCompleted(bridge, updated);
         }
       }
 

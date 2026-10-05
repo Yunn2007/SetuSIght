@@ -63,6 +63,12 @@
         <a href="/login" class="btn btn--primary">Get Started <span class="arrow">→</span></a>
         <a href="#how-it-works" class="btn btn--ghost">Explore the System <span class="arrow">→</span></a>
       </div>
+      <div style="margin-top: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--navy-faint); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">1-Click Role Login:</span>
+        <a href="/login?role=admin" class="btn btn--ghost btn--sm" style="padding: 4px 10px; font-size: 0.76rem; border-color: var(--border-strong);">🛡️ Admin</a>
+        <a href="/login?role=inspector" class="btn btn--ghost btn--sm" style="padding: 4px 10px; font-size: 0.76rem; border-color: var(--border-strong);">🔍 Inspector</a>
+        <a href="/login?role=contractor" class="btn btn--ghost btn--sm" style="padding: 4px 10px; font-size: 0.76rem; border-color: var(--border-strong);">🏗️ Contractor</a>
+      </div>
     </div>
 
     <div class="hero__visual reveal">
@@ -300,7 +306,7 @@
     </div>
 
     <div class="bn__table-wrap reveal">
-      <div class="bn__table-note">System records / demonstration data — not verified structural assessments</div>
+      <div class="bn__table-note">Monitored structural inventory records</div>
       <table class="bn__table">
         <thead>
           <tr>
@@ -313,7 +319,7 @@
           </tr>
         </thead>
         <tbody id="bridgeTableBody">
-          <!-- rows dynamically loaded from API with static fallback -->
+          <!-- rows dynamically loaded from GET /api/bridges -->
         </tbody>
       </table>
     </div>

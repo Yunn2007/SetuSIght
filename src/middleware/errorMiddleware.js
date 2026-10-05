@@ -21,6 +21,14 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // ML / YOLOv8 Inference Failed
+  if (err.code === 'ML_INFERENCE_FAILED' || err.code === 'ML_MODEL_NOT_FOUND' || err.code === 'ML_PARSE_ERROR') {
+    return res.status(502).json({
+      success: false,
+      error: `AI inference unavailable / failed: ${err.message}`
+    });
+  }
+
   // Multer Errors
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({

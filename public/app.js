@@ -224,6 +224,14 @@ const SetuApp = (function () {
     return 'status--moderate';
   }
 
+  function getPriorityClass(priority) {
+    if (!priority) return 'status--moderate';
+    const p = String(priority).toLowerCase();
+    if (p.includes('urgent') || p.includes('critical') || p.includes('high')) return 'status--attention';
+    if (p.includes('medium')) return 'status--moderate';
+    return 'status--good';
+  }
+
   return {
     getAuthToken,
     getCurrentUser,
@@ -236,6 +244,7 @@ const SetuApp = (function () {
     initHeader,
     initNotifications,
     markNotificationRead,
-    getStatusClass
+    getStatusClass,
+    getPriorityClass
   };
 })();
