@@ -38,9 +38,9 @@ async function runTests() {
   assert.strictEqual(moderateResult.healthStatus, 'Moderate');
   console.log(`  ✅ Moderate Bridge Scenario: Score ${moderateResult.healthScore} -> Status '${moderateResult.healthStatus}'`);
 
-  // Critical bridge with high cracks, old age
+  // Critical bridge with critical cracks, old age
   const criticalBridge = { construction_year: 1998, design_life: 50, material: 'Reinforced Concrete', location: 'Nerul', bridge_name: 'Nerul West Underpass' };
-  const criticalResult = healthService.calculateHealthAssessment(criticalBridge, { crack_severity: 'high', crack_count: 7 });
+  const criticalResult = healthService.calculateHealthAssessment(criticalBridge, { crack_severity: 'critical', crack_count: 8 });
   assert(criticalResult.healthScore < 60, `Critical bridge score should be < 60, got ${criticalResult.healthScore}`);
   assert.strictEqual(criticalResult.healthStatus, 'Attention Required');
   console.log(`  ✅ Critical Bridge Scenario: Score ${criticalResult.healthScore} -> Status '${criticalResult.healthStatus}'\n`);

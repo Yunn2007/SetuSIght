@@ -95,7 +95,11 @@ function initImageUpload() {
 
   fileInput.addEventListener('change', () => {
     if (fileInput.files) {
+      if (uploadedFiles.length + fileInput.files.length > 10) {
+        SetuApp.showToast('Maximum 10 images allowed per inspection session. Excess files were ignored.', 'warning');
+      }
       for (let i = 0; i < fileInput.files.length; i++) {
+        if (uploadedFiles.length >= 10) break;
         uploadedFiles.push(fileInput.files[i]);
       }
       fileInput.value = '';
@@ -121,7 +125,11 @@ function initImageUpload() {
     e.preventDefault();
     dropzone.classList.remove('dragover');
     if (e.dataTransfer && e.dataTransfer.files) {
+      if (uploadedFiles.length + e.dataTransfer.files.length > 10) {
+        SetuApp.showToast('Maximum 10 images allowed per inspection session. Excess files were ignored.', 'warning');
+      }
       for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        if (uploadedFiles.length >= 10) break;
         const file = e.dataTransfer.files[i];
         if (file.type.startsWith('image/') || /\.(jpe?g|png|webp|jfif|avif)$/i.test(file.name)) {
           uploadedFiles.push(file);
@@ -228,7 +236,11 @@ document.getElementById('createInspectionForm')?.addEventListener('submit', asyn
   const dossierLinkWrap = document.getElementById('resultDossierLinkWrap');
 
   if (uploadedFiles.length === 0) {
-    SetuApp.showToast('Please select or drop at least one concrete patch photo', 'warning');
+    SetuApp.showToast('Please select or drop at least 1 concrete patch photo (1 to 10 patches required)', 'warning');
+    return;
+  }
+  if (uploadedFiles.length > 10) {
+    SetuApp.showToast('Maximum 10 images allowed per inspection session. Please remove excess patches.', 'error');
     return;
   }
 

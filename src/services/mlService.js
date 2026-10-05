@@ -41,7 +41,7 @@ class MlService {
     }
 
     if (!fs.existsSync(this.modelPath)) {
-      const err = new Error(`YOLOv8 model weights not found at ${this.modelPath}`);
+      const err = new Error(`YOLO model not found at ${this.modelPath}. Place the trained SetuSight model at this path.`);
       err.code = 'ML_MODEL_NOT_FOUND';
       throw err;
     }
@@ -77,6 +77,12 @@ class MlService {
           }
           if (!errorMsg && stderr) {
             errorMsg = stderr.trim();
+          }
+
+          if (errorMsg.includes('YOLO model not found') || errorMsg.includes('Model weights file not found')) {
+            const notFoundErr = new Error(`YOLO model not found at ${this.modelPath}. Place the trained SetuSight model at this path.`);
+            notFoundErr.code = 'ML_MODEL_NOT_FOUND';
+            return reject(notFoundErr);
           }
 
           const mlErr = new Error(`AI inference execution failed: ${errorMsg}`);

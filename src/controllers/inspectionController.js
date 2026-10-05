@@ -97,6 +97,13 @@ class InspectionController {
         });
       }
 
+      if (files.length > 10) {
+        return res.status(400).json({
+          success: false,
+          error: 'Maximum 10 image patches permitted per inspection session'
+        });
+      }
+
       // 1. Fetch bridge asset metadata
       const bridge = await dbService.getBridgeById(bridge_id);
       if (!bridge) {
@@ -129,6 +136,12 @@ class InspectionController {
         try {
           mlDetection = await mlService.analyzeBridgeImage(imageUrl);
         } catch (mlErr) {
+          if (mlErr.code === 'ML_MODEL_NOT_FOUND' || (mlErr.message && mlErr.message.includes('YOLO model not found'))) {
+            return res.status(503).json({
+              success: false,
+              error: 'YOLO model not found at ml/best.pt. Place the trained SetuSight model at this path.'
+            });
+          }
           console.error(`ML inference failed on ${patchLabel}:`, mlErr.message);
           mlDetection = {
             status: 'failed',
@@ -136,6 +149,7 @@ class InspectionController {
             crackCount: 0,
             confidence: 0.0,
             detections: [],
+            error: mlErr.message,
             note: 'AI ANALYSIS UNAVAILABLE'
           };
         }
@@ -176,12 +190,25 @@ class InspectionController {
           detections: mlDetection.detections || [],
           local_condition_score: localConditionScore,
           ai_status: mlDetection.status,
-          crack_detected: mlDetection.crackDetected
+          crack_detected: mlDetection.crackDetected,
+          error: mlDetection.error || null
         });
       }
 
-      // 3. Aggregate evidence across all inspected patches (Inspection Session Condition)
-      const sessionEvidence = healthService.aggregateSessionEvidence(patches);
+      // Partial Failure Policy: Verify at least one patch succeeded
+      const successfulPatches = patches.filter(p => p.ai_status !== 'failed');
+      const failedPatches = patches.filter(p => p.ai_status === 'failed');
+
+      if (successfulPatches.length === 0) {
+        return res.status(500).json({
+          success: false,
+          error: 'AI analysis failed for all uploaded patches. Bridge health was not updated.',
+          details: failedPatches.map(p => ({ patch: p.patch_label, error: p.error }))
+        });
+      }
+
+      // 3. Aggregate evidence across inspected patches (Inspection Session Condition)
+      const sessionEvidence = healthService.aggregateSessionEvidence(successfulPatches);
 
       // 4. Fetch bridge context (maintenance history + past inspections trend)
       const pastMaintenance = await dbService.getMaintenanceByBridgeId(bridge.id);

@@ -94,6 +94,27 @@ CREATE INDEX IF NOT EXISTS idx_inspections_date ON inspections(inspection_date);
 CREATE INDEX IF NOT EXISTS idx_inspections_severity ON inspections(crack_severity);
 
 -- ----------------------------------------------------------------------------
+-- 4b. TABLE: inspection_images (Multi-Patch Session Images)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS inspection_images (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    inspection_id UUID NOT NULL REFERENCES inspections(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    cloudinary_public_id TEXT NOT NULL,
+    patch_label VARCHAR(100) DEFAULT 'Patch 1',
+    image_dimensions JSONB DEFAULT '{"width": 0, "height": 0}'::jsonb,
+    crack_count INTEGER NOT NULL DEFAULT 0,
+    crack_severity VARCHAR(50) NOT NULL DEFAULT 'none' CHECK (crack_severity IN ('pending', 'none', 'low', 'moderate', 'high', 'critical')),
+    detection_confidence NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    detection_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    local_condition_score NUMERIC(5, 2) NOT NULL DEFAULT 100.0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_inspection_images_inspection_id ON inspection_images(inspection_id);
+CREATE INDEX IF NOT EXISTS idx_inspection_images_severity ON inspection_images(crack_severity);
+
+-- ----------------------------------------------------------------------------
 -- 5. TABLE: maintenance
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS maintenance (
@@ -118,6 +139,7 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_priority ON maintenance(priority);
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    notification_code VARCHAR(50) UNIQUE,
     recipient_id UUID REFERENCES users(id) ON DELETE CASCADE,
     bridge_id UUID REFERENCES bridges(id) ON DELETE SET NULL,
     type VARCHAR(100) NOT NULL CHECK (type IN ('inspection_due', 'critical_finding', 'maintenance_required', 'maintenance_due', 'maintenance_completed', 'contractor_assigned')),

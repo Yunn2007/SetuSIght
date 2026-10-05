@@ -76,7 +76,7 @@ def run_inference(image_input, model_path="ml/best.pt", conf_threshold=0.25):
     if not os.path.exists(model_path):
         return {
             "success": False,
-            "error": f"Model weights file not found at: {model_path}"
+            "error": f"YOLO model not found at {model_path}. Place the trained SetuSight model at this path."
         }
 
     # 2. Resolve image source

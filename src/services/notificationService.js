@@ -22,18 +22,23 @@ class NotificationService {
    */
   async notify({ recipientId, bridgeId, type, title, message }) {
     try {
+      if (!recipientId) {
+        console.error('[NotificationService] Error: Missing valid recipientId. SetuSight notifications require a real user UUID recipient.');
+        return { success: false, error: 'recipientId is required' };
+      }
+
       // 10-minute deduplication key: recipient + bridge + type + title
-      const dedupKey = `${recipientId || 'broadcast'}:${bridgeId || 'global'}:${type}:${title}`;
+      const dedupKey = `${recipientId}:${bridgeId || 'global'}:${type}:${title}`;
       const now = Date.now();
       const lastSent = NotificationService._dedupCache.get(dedupKey);
 
       if (lastSent && (now - lastSent) < 10 * 60 * 1000) {
         console.log(`[NotificationService] Suppressed duplicate alert: ${dedupKey}`);
-        return null;
+        return { success: true, deduplicated: true };
       }
 
       const payload = {
-        recipient_id: recipientId || null,
+        recipient_id: recipientId,
         bridge_id: bridgeId || null,
         type: type,
         title: title,
@@ -55,8 +60,8 @@ class NotificationService {
 
       return result;
     } catch (err) {
-      console.warn('[NotificationService] Failed to record notification in database:', err.message);
-      return null;
+      console.error('[NotificationService] Failed to record notification in database:', err.message);
+      return { success: false, error: err.message };
     }
   }
 
@@ -78,12 +83,12 @@ class NotificationService {
         );
         return await Promise.all(promises);
       } else {
-        // Fallback broadcast if no explicit admin account found
-        return [await this.notify({ recipientId: null, bridgeId, type, title, message })];
+        console.error('[NotificationService] System Configuration Error: No active users with role "admin" found. Notification was not created.');
+        return [{ success: false, error: 'No active administrators found in database' }];
       }
     } catch (err) {
-      console.warn('[NotificationService] Error notifying admins:', err.message);
-      return null;
+      console.error('[NotificationService] Error notifying admins:', err.message);
+      return [{ success: false, error: err.message }];
     }
   }
 

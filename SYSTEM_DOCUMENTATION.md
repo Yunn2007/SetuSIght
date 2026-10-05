@@ -40,8 +40,8 @@ graph TD
 
     subgraph Service & Engine Layer
         DBService[Supabase Direct Query Service]
-        MLService[Computer Vision Interface: YOLOv8 Placeholder]
-        HealthEngine[Multi-Parameter Structural Health Engine]
+        MLService[Computer Vision Engine: Real YOLOv8 PyTorch Pipeline]
+        HealthEngine[3-Tier Multi-Parameter Structural Health Engine]
         NotifService[Database-Backed Alert Dispatcher]
     end
 
@@ -332,45 +332,67 @@ $$\text{Priority} = \begin{cases}
 
 ---
 
-## 4. Computer Vision (YOLOv8) Service Interface
+## 4. Computer Vision (YOLOv8) Service Interface & Local Setup
 
-The machine learning module is strictly isolated in [src/services/mlService.js](file:///Users/yunuskhan/Desktop/SetuSIght/src/services/mlService.js) to guarantee clean separation between infrastructure services and future ML model deployment.
+The machine learning module executes real Computer Vision inference via Python ultralytics YOLOv8 in [src/services/mlService.js](file:///Users/yunuskhan/Desktop/SetuSIght/src/services/mlService.js) and [ml/inference.py](file:///Users/yunuskhan/Desktop/SetuSIght/ml/inference.py).
 
 ```mermaid
 sequenceDiagram
     participant FieldInspector as Inspector Client
     participant ExpressGateway as Express API Gateway
     participant CloudinaryStore as Cloudinary Storage
-    participant MLPlaceholder as ML Service Interface
-    participant HealthEngine as Health Assessment Engine
+    participant PyYOLO as Python YOLOv8 Engine (ml/best.pt)
+    participant HealthEngine as 3-Tier Health Engine
     participant SupabaseDB as Supabase Database
 
-    FieldInspector->>ExpressGateway: POST /api/inspections (Multipart Image + Metadata)
-    ExpressGateway->>CloudinaryStore: Stream In-Memory Buffer
-    CloudinaryStore-->>ExpressGateway: Secure URL (https://res.cloudinary.com/...)
-    ExpressGateway->>MLPlaceholder: analyzeBridgeImage(secure_url)
-    MLPlaceholder-->>ExpressGateway: Standardized Detection Response
-    ExpressGateway->>HealthEngine: calculateHealthAssessment(bridge, findings)
-    HealthEngine-->>ExpressGateway: { healthScore, healthStatus }
-    ExpressGateway->>SupabaseDB: Insert Inspection & Update Bridge Record
+    FieldInspector->>ExpressGateway: POST /api/inspections (1-10 Multipart Images)
+    loop For each patch image
+        ExpressGateway->>CloudinaryStore: Stream In-Memory Buffer
+        CloudinaryStore-->>ExpressGateway: Secure Cloudinary URL
+        ExpressGateway->>PyYOLO: analyzeBridgeImage(patch_url) via ml/best.pt
+        PyYOLO-->>ExpressGateway: Real Detection Bounding Boxes & Confidence
+        ExpressGateway->>ExpressGateway: Calculate Local Patch Condition (10-100)
+    end
+    ExpressGateway->>HealthEngine: aggregateSessionEvidence(patches)
+    ExpressGateway->>HealthEngine: calculateHealthAssessment(bridge, sessionEvidence, history)
+    HealthEngine-->>ExpressGateway: { healthScore, healthStatus, maintenancePriority }
+    ExpressGateway->>SupabaseDB: Persist Inspection Session + inspection_images
+    ExpressGateway->>SupabaseDB: Update Bridge current_health_score & status
     SupabaseDB-->>ExpressGateway: Record Confirmation
-    ExpressGateway-->>FieldInspector: HTTP 201 Inspection Created
+    ExpressGateway-->>FieldInspector: HTTP 201 Inspection Created with Full Visual AI Telemetry
 ```
 
-### 4.1 ML Interface Output Contract
+### 4.1 ML Weights & Local Environment Requirements
+> [!IMPORTANT]
+> The trained weights file `ml/best.pt` is intentionally ignored by `.gitignore` and is NOT committed to GitHub.
+> 
+> 1. Developers/operators running SetuSight locally must place the trained weights file at:
+>    `ml/best.pt`
+> 2. The local Python environment must contain `ultralytics`, `torch`, and `Pillow`. A dedicated virtual environment at `ml/venv` is automatically discovered by `mlService.js`.
+> 3. If `ml/best.pt` is missing, the service cleanly rejects requests with `HTTP 503 Service Unavailable`:
+>    ```json
+>    {
+>      "success": false,
+>      "error": "YOLO model not found at ml/best.pt. Place the trained SetuSight model at this path."
+>    }
+>    ```
+>    The system strictly forbids returning fake detections or simulated scores when the model is unavailable.
+
+### 4.2 ML Interface Output Contract
 ```typescript
 interface MLAnalysisResult {
-  isMock: boolean;             // true during placeholder phase
-  status: string;             // "AI analysis module pending integration"
+  isMock: boolean;             // false (Real PyTorch YOLOv8 model inference)
+  status: string;             // "AI analysis completed"
   crackDetected: boolean;     // Detected visual crack presence
   crackCount: number;         // Count of detected bounding boxes
   confidence: number;         // Mean confidence score [0.0 - 1.0]
   detections: Array<{
     bbox: [number, number, number, number]; // [x_min, y_min, x_max, y_max]
     confidence: number;
-    label: string;            // e.g. "longitudinal_crack", "shear_crack"
+    label: string;            // e.g. "crack"
     severity_level: "low" | "moderate" | "high" | "critical";
   }>;
+  image_dimensions: { width: number; height: number };
   processedAt: string;        // ISO 8601 Timestamp
 }
 ```
@@ -655,7 +677,7 @@ Automated verification tests are included in the repository:
    ```bash
    node scripts/test-services.js
    ```
-   - ✅ Verifies isolated ML YOLOv8 placeholder contract (`isMock: true`, `"AI analysis module pending integration"`).
+   - ✅ Verifies real YOLOv8 ML inference execution (`isMock: false`, `ml/best.pt`).
    - ✅ Verifies mathematical rule-based health assessment across young, moderate, and critical bridges.
    - ✅ Verifies RBAC middleware.
 
