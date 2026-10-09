@@ -121,7 +121,7 @@
           <div class="card__header">
             <div>
               <h3 class="card__title">Maintenance Work Orders</h3>
-              <p class="card__desc">Review assigned repair scope, start work, and update completion status</p>
+              <p class="card__desc">Review assigned repair scope, start work, upload evidence, and update completion status</p>
             </div>
           </div>
           <div class="card__body card__body--flush">
@@ -130,10 +130,12 @@
                 <thead>
                   <tr>
                     <th>Maintenance ID</th>
-                    <th>Bridge</th>
+                    <th>Bridge Asset</th>
                     <th>Priority</th>
+                    <th>Health State</th>
                     <th>Scheduled Date</th>
                     <th>Status</th>
+                    <th>Scope / Notes</th>
                     <th style="text-align: right;">Action</th>
                   </tr>
                 </thead>
@@ -163,10 +165,11 @@
                     <th>Bridge ID</th>
                     <th>Bridge Name</th>
                     <th>Location</th>
-                    <th>Material</th>
+                    <th>Material / Type</th>
+                    <th>Age / Built</th>
                     <th>Health Score</th>
-                    <th>Condition Status</th>
-                    <th>Maintenance Priority</th>
+                    <th>Condition</th>
+                    <th>Priority</th>
                     <th style="text-align: right;">Action</th>
                   </tr>
                 </thead>
@@ -194,12 +197,13 @@
                 <thead>
                   <tr>
                     <th>Maintenance ID</th>
-                    <th>Bridge</th>
+                    <th>Bridge Asset</th>
                     <th>Scheduled Date</th>
                     <th>Completion Date</th>
                     <th>Priority</th>
                     <th>Work Notes</th>
-                    <th>Status</th>
+                    <th>Evidence</th>
+                    <th style="text-align: right;">Action</th>
                   </tr>
                 </thead>
                 <tbody id="contractorCompletedTable">
@@ -223,7 +227,7 @@
       <button class="modal__close" onclick="closeModal('viewMaintenanceModal')">&times;</button>
     </div>
     <form id="updateMaintenanceForm">
-      <div class="modal__body">
+      <div class="modal__body" style="max-height: 75vh; overflow-y: auto;">
         <input type="hidden" id="modalMaintId">
 
         <!-- 1. BRIDGE INFORMATION -->
@@ -231,9 +235,9 @@
           <div style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
             Bridge Information
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; background: var(--bg-alt); padding: 14px; border-radius: var(--radius-s); font-size: 0.86rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; background: var(--bg-alt); padding: 14px; border-radius: var(--radius-s); font-size: 0.86rem;">
             <div>
-              <div style="color: var(--navy-faint); font-size: 0.72rem; text-transform: uppercase;">Bridge ID &amp; Name</div>
+              <div style="color: var(--navy-faint); font-size: 0.72rem; text-transform: uppercase;">Bridge Name &amp; ID</div>
               <div style="font-weight: 700; margin-top: 2px;" id="mBridgeName">--</div>
             </div>
             <div>
@@ -255,26 +259,40 @@
           </div>
         </div>
 
-        <!-- 2. MAINTENANCE INFORMATION -->
+        <!-- 2. MAINTENANCE INFORMATION & QUICK ACTIONS -->
         <div style="margin-bottom: 20px;">
           <div style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
-            Maintenance Information
+            Work Order Status &amp; Scope
           </div>
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Maintenance Priority</label>
-              <div id="mMaintPriority" style="font-weight: 600; padding: 8px 0;">--</div>
+              <div id="mMaintPriority" style="font-weight: 600; padding: 6px 0;">--</div>
             </div>
             <div class="form-group">
               <label class="form-label">Scheduled Date</label>
-              <div id="mMaintScheduledDate" class="mono font-bold" style="padding: 8px 0;">--</div>
+              <div id="mMaintScheduledDate" class="mono font-bold" style="padding: 6px 0;">--</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current Status</label>
+              <div id="mMaintCurrentStatusBadge" style="padding: 6px 0;">--</div>
+            </div>
+          </div>
+
+          <!-- Quick Lifecycle Action Buttons -->
+          <div style="margin-bottom: 16px; padding: 12px; background: rgba(31, 122, 77, 0.05); border: 1px solid var(--border); border-radius: var(--radius-s);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--navy-soft); text-transform: uppercase; margin-bottom: 8px;">Lifecycle Quick Actions</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="mQuickActionButtons">
+              <button type="button" class="btn btn--secondary btn--sm" id="btnQuickStart" onclick="setQuickStatus('In Progress')">▶ Start Work</button>
+              <button type="button" class="btn btn--outline btn--sm" id="btnQuickOverdue" onclick="setQuickStatus('Overdue')">⚠ Mark Overdue</button>
+              <button type="button" class="btn btn--primary btn--sm" id="btnQuickComplete" onclick="setQuickStatus('Completed')" style="background: var(--green);">✓ Mark Completed</button>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="mMaintStatusSelect">Update Maintenance Status *</label>
             <select id="mMaintStatusSelect" class="form-select" required>
-              <option value="Scheduled">Scheduled / Pending (Not Started)</option>
+              <option value="Scheduled">Scheduled / Pending</option>
               <option value="In Progress">In Progress (Repair Underway)</option>
               <option value="Completed">Completed (Repairs Finished)</option>
               <option value="Overdue">Overdue / Delayed</option>
@@ -282,21 +300,78 @@
           </div>
 
           <div class="form-group" id="completionDateWrapper">
-            <label class="form-label" for="mCompletionDateInput">Completion Date (when marked Completed)</label>
+            <label class="form-label" for="mCompletionDateInput">Completion Date (Required for Completed status)</label>
             <input type="date" id="mCompletionDateInput" class="form-input">
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="mRemarksInput">Required Maintenance Scope &amp; Contractor Work Notes</label>
-            <textarea id="mRemarksInput" class="form-textarea" rows="3" placeholder="Enter work notes, repair methods executed (e.g. epoxy injection, seal replacement, surface treatment)..."></textarea>
+            <label class="form-label" for="mRemarksInput">Required Scope &amp; Contractor Work Notes</label>
+            <textarea id="mRemarksInput" class="form-textarea" rows="3" placeholder="Enter executed repair methods (e.g. crack epoxy sealing, beam resurfacing, bearing inspection)..."></textarea>
           </div>
         </div>
+
+        <!-- 3. REPAIR EVIDENCE GALLERY & UPLOAD -->
+        <div style="margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+            <div style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em;">
+              Repair &amp; Completion Evidence (Before / Progress / After)
+            </div>
+          </div>
+
+          <!-- Evidence Gallery -->
+          <div id="mEvidenceGallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <!-- Dynamic evidence cards -->
+          </div>
+
+          <!-- Upload Form Container -->
+          <div id="mEvidenceUploadCard" style="background: var(--bg-alt); padding: 14px; border-radius: var(--radius-s); border: 1px dashed var(--border-strong);">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;">Upload Photographic Evidence</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <div>
+                <label class="form-label" style="font-size: 0.75rem;">Photo Stage *</label>
+                <select id="evidenceStageSelect" class="form-select" style="padding: 6px 10px; font-size: 0.82rem;">
+                  <option value="before">Before Repair (Initial Condition)</option>
+                  <option value="progress">During Repair (In Progress)</option>
+                  <option value="after">After Repair (Completion Verification)</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 0.75rem;">Caption / Description</label>
+                <input type="text" id="evidenceCaptionInput" class="form-input" style="padding: 6px 10px; font-size: 0.82rem;" placeholder="e.g. Epoxy crack injection completed on Pier 2">
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="file" id="evidenceFileInput" accept="image/*" class="form-input" style="padding: 4px; font-size: 0.82rem; flex: 1;">
+              <button type="button" id="btnUploadEvidence" class="btn btn--secondary btn--sm" onclick="uploadEvidencePhoto()">
+                Upload Evidence Photo
+              </button>
+            </div>
+            <div id="evidenceUploadMsg" style="margin-top: 6px; font-size: 0.78rem;"></div>
+          </div>
+        </div>
+
       </div>
       <div class="modal__footer">
-        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('viewMaintenanceModal')">Cancel</button>
-        <button type="submit" id="saveMaintBtn" class="btn btn--primary btn--sm">Save &amp; Update Work Order</button>
+        <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('viewMaintenanceModal')">Close</button>
+        <button type="submit" id="saveMaintBtn" class="btn btn--primary btn--sm">Save Work Order Changes</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- CONTRACTOR READ-ONLY BRIDGE DETAILS MODAL -->
+<div class="modal-backdrop" id="contractorBridgeModal">
+  <div class="modal modal--lg">
+    <div class="modal__header">
+      <h3 id="contractorBridgeModalTitle">Bridge Structure Details</h3>
+      <button class="modal__close" onclick="closeModal('contractorBridgeModal')">&times;</button>
+    </div>
+    <div class="modal__body" id="contractorBridgeModalBody" style="max-height: 75vh; overflow-y: auto;">
+      <!-- Dynamic bridge specifications & history -->
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--primary btn--sm" onclick="closeModal('contractorBridgeModal')">Done</button>
+    </div>
   </div>
 </div>
 

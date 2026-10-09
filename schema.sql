@@ -155,7 +155,25 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_status ON maintenance(status);
 CREATE INDEX IF NOT EXISTS idx_maintenance_priority ON maintenance(priority);
 
 -- ----------------------------------------------------------------------------
--- 7. TABLE: notifications (Actionable Alerts)
+-- 7. TABLE: maintenance_evidence (Repair & Completion Photographic Evidence)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS maintenance_evidence (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    maintenance_id UUID NOT NULL REFERENCES maintenance(id) ON DELETE CASCADE,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    image_url TEXT NOT NULL,
+    cloudinary_public_id TEXT,
+    evidence_type VARCHAR(50) NOT NULL CHECK (evidence_type IN ('before', 'progress', 'after')),
+    caption TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_maintenance_evidence_maintenance ON maintenance_evidence(maintenance_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_evidence_type ON maintenance_evidence(evidence_type);
+CREATE INDEX IF NOT EXISTS idx_maintenance_evidence_created ON maintenance_evidence(created_at);
+
+-- ----------------------------------------------------------------------------
+-- 8. TABLE: notifications (Actionable Alerts)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -174,7 +192,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON notifications(recipien
 CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(recipient_id, is_read);
 
 -- ----------------------------------------------------------------------------
--- 8. TABLE: reports (Generated Structural Dossiers)
+-- 9. TABLE: reports (Generated Structural Dossiers)
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

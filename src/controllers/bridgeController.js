@@ -3,6 +3,7 @@
  */
 const dbService = require('../services/dbService');
 const healthService = require('../services/healthService');
+const notificationService = require('../services/notificationService');
 
 class BridgeController {
   /**
@@ -12,11 +13,12 @@ class BridgeController {
    */
   async getAllBridges(req, res, next) {
     try {
+      const query = req.query || {};
       const filters = {
-        status: req.query.status,
-        location: req.query.location,
-        material: req.query.material,
-        search: req.query.search
+        status: query.status,
+        location: query.location,
+        material: query.material,
+        search: query.search
       };
 
       // Strict Contractor Role Guard
@@ -222,6 +224,35 @@ class BridgeController {
         }
       });
 
+      // Handle contractor removal or reassignment
+      let reassignmentNote = null;
+      if (req.body.contractor_id !== undefined) {
+        updateData.contractor_id = req.body.contractor_id === '' ? null : req.body.contractor_id;
+
+        if (updateData.contractor_id !== existing.contractor_id) {
+          const maintenanceRecords = await dbService.getMaintenanceByBridgeId(existing.id);
+          const activeTasks = maintenanceRecords.filter(m => m.status !== 'Completed');
+
+          if (activeTasks.length > 0) {
+            if (req.body.reassign_active_maintenance === true && updateData.contractor_id) {
+              // Explicitly transfer active maintenance to new contractor
+              for (const task of activeTasks) {
+                await dbService.updateMaintenance(task.id, { contractor_id: updateData.contractor_id });
+              }
+              const newContractor = await dbService.getContractorById(updateData.contractor_id);
+              if (newContractor) {
+                for (const task of activeTasks) {
+                  await notificationService.notifyContractorAssigned(newContractor, existing, task);
+                }
+              }
+              reassignmentNote = `${activeTasks.length} active maintenance work order(s) reassigned to new contractor firm.`;
+            } else {
+              reassignmentNote = `${activeTasks.length} active maintenance work order(s) remain assigned to previous contractor for continuity.`;
+            }
+          }
+        }
+      }
+
       if (updateData.construction_year) {
         updateData.construction_year = parseInt(updateData.construction_year, 10);
       }
@@ -238,7 +269,8 @@ class BridgeController {
       res.json({
         success: true,
         message: 'Bridge asset updated successfully',
-        data: updated
+        data: updated,
+        reassignment_note: reassignmentNote
       });
     } catch (err) {
       next(err);
@@ -281,6 +313,22 @@ class BridgeController {
           success: false,
           error: 'Bridge structure not found'
         });
+      }
+
+      // Strict Contractor Access Verification
+      if (req.user && req.user.role === 'contractor') {
+        let contractorId = req.user.contractor_id;
+        if (!contractorId) {
+          const userRecord = await dbService.getUserById(req.user.id);
+          contractorId = userRecord?.contractor_id;
+        }
+
+        if (!contractorId || result.bridge.contractor_id !== contractorId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied. This bridge timeline is not assigned to your contractor account.'
+          });
+        }
       }
 
       res.json({

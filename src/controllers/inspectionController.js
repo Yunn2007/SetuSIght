@@ -249,7 +249,9 @@ class InspectionController {
           maintenance_priority: assessment.maintenancePriority,
           images: patches,
           primary_image_dimensions: primaryPatch.image_dimensions,
-          detections: primaryPatch.detections
+          detections: primaryPatch.detections,
+          is_mock: false,
+          model_file: 'best.pt'
         },
         health_score: assessment.healthScore,
         health_status: assessment.healthStatus,
@@ -279,6 +281,13 @@ class InspectionController {
         success: true,
         message: `Inspection session submitted with ${patches.length} patch(es) analyzed successfully`,
         data: savedInspection,
+        ml_service: {
+          crackDetected: sessionEvidence.totalCrackCount > 0,
+          crackCount: sessionEvidence.totalCrackCount,
+          worstSeverity: sessionEvidence.worstSeverity,
+          detections: primaryPatch.detections,
+          isMock: false
+        },
         session_summary: {
           total_patches: patches.length,
           affected_patches: sessionEvidence.affectedPatchCount,

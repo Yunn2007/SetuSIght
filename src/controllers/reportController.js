@@ -9,7 +9,18 @@ class ReportController {
    */
   async getAllReports(req, res, next) {
     try {
-      const reports = await dbService.getAllReports();
+      let reports = await dbService.getAllReports();
+
+      // Strict Contractor Role Guard
+      if (req.user && req.user.role === 'contractor') {
+        let contractorId = req.user.contractor_id;
+        if (!contractorId) {
+          const userRecord = await dbService.getUserById(req.user.id);
+          contractorId = userRecord?.contractor_id;
+        }
+        reports = reports.filter(r => r.bridge?.contractor_id === contractorId);
+      }
+
       res.json({
         success: true,
         count: reports.length,
@@ -35,6 +46,22 @@ class ReportController {
 
       // Fetch comprehensive bridge details & history for dossier rendering
       const bridge = await dbService.getBridgeById(report.bridge_id);
+
+      // Strict Contractor Access Guard
+      if (req.user && req.user.role === 'contractor') {
+        let contractorId = req.user.contractor_id;
+        if (!contractorId) {
+          const userRecord = await dbService.getUserById(req.user.id);
+          contractorId = userRecord?.contractor_id;
+        }
+        if (!contractorId || bridge?.contractor_id !== contractorId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied: You are not authorized to view reports for bridges unassigned to your company.'
+          });
+        }
+      }
+
       const inspections = await dbService.getInspectionsByBridgeId(report.bridge_id);
       const maintenance = await dbService.getMaintenanceByBridgeId(report.bridge_id);
 

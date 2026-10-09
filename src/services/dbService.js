@@ -83,6 +83,34 @@ class DbService {
     return data || [];
   }
 
+  async updateUser(id, updateData) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', id)
+      .select('id, name, email, role, contractor_id, created_at')
+      .single();
+
+    if (error) {
+      throw new Error(`Database error updating user: ${error.message}`);
+    }
+    return data;
+  }
+
+  async deleteUser(id) {
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Database error deleting user: ${error.message}`);
+    }
+    return true;
+  }
+
   // --------------------------------------------------------------------------
   // BRIDGES
   // --------------------------------------------------------------------------
@@ -578,9 +606,18 @@ class DbService {
 
   async createContractor(contractorData) {
     const supabase = getSupabase();
+    let code = contractorData.contractor_code;
+    if (!code) {
+      const { count } = await supabase.from('contractors').select('*', { count: 'exact', head: true });
+      code = `C${String((count || 0) + 1).padStart(3, '0')}`;
+    }
+
     const { data, error } = await supabase
       .from('contractors')
-      .insert([contractorData])
+      .insert([{
+        ...contractorData,
+        contractor_code: code
+      }])
       .select()
       .single();
 
@@ -605,6 +642,88 @@ class DbService {
     return data;
   }
 
+  async deleteContractor(id) {
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('contractors')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Database error deleting contractor: ${error.message}`);
+    }
+    return true;
+  }
+
+  // --------------------------------------------------------------------------
+  // MAINTENANCE EVIDENCE
+  // --------------------------------------------------------------------------
+  async getMaintenanceEvidence(maintenanceId) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('maintenance_evidence')
+      .select(`
+        *,
+        uploader:users (id, name, email, role)
+      `)
+      .eq('maintenance_id', maintenanceId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      // If table doesn't exist yet before migration, return empty gracefully
+      console.warn('Database note fetching maintenance evidence:', error.message);
+      return [];
+    }
+    return data || [];
+  }
+
+  async getMaintenanceEvidenceById(id) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('maintenance_evidence')
+      .select(`
+        *,
+        uploader:users (id, name, email, role)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Database error fetching evidence item: ${error.message}`);
+    }
+    return data || null;
+  }
+
+  async createMaintenanceEvidence(evidenceData) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('maintenance_evidence')
+      .insert([evidenceData])
+      .select(`
+        *,
+        uploader:users (id, name, email, role)
+      `)
+      .single();
+
+    if (error) {
+      throw new Error(`Database error creating maintenance evidence: ${error.message}`);
+    }
+    return data;
+  }
+
+  async deleteMaintenanceEvidence(id) {
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('maintenance_evidence')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Database error deleting maintenance evidence: ${error.message}`);
+    }
+    return true;
+  }
+
   // --------------------------------------------------------------------------
   // NOTIFICATIONS
   // --------------------------------------------------------------------------
@@ -620,8 +739,7 @@ class DbService {
       .limit(50);
 
     if (recipientId) {
-      // Include notifications explicitly addressed to this user OR general broadcast alerts
-      query = query.or(`recipient_id.eq.${recipientId},recipient_id.is.null`);
+      query = query.eq('recipient_id', recipientId);
     }
 
     const { data, error } = await query;
@@ -654,12 +772,18 @@ class DbService {
     return data;
   }
 
-  async markNotificationRead(id) {
+  async markNotificationRead(id, recipientId = null) {
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    let query = supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('id', id)
+      .eq('id', id);
+
+    if (recipientId) {
+      query = query.eq('recipient_id', recipientId);
+    }
+
+    const { data, error } = await query
       .select()
       .single();
 

@@ -407,13 +407,14 @@
               <table class="data-table">
                 <thead>
                   <tr>
+                    <th>Code</th>
                     <th>Company Name</th>
                     <th>Contact Person</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Assigned Bridges</th>
-                    <th>Completed Work</th>
-                    <th>Overdue Work</th>
+                    <th>Email / Phone</th>
+                    <th>Login Account</th>
+                    <th>Bridges</th>
+                    <th>Tasks (Total / Active / Done / Overdue)</th>
+                    <th>Rate</th>
                     <th>Compliance Flag</th>
                     <th>Actions</th>
                   </tr>
@@ -587,9 +588,16 @@
           <div class="form-group">
             <label class="form-label" for="contractor_select_input">Assigned Contractor</label>
             <select id="contractor_select_input" class="form-select">
-              <option value="">-- Select Contractor --</option>
+              <option value="">-- No Contractor (Unassigned) --</option>
             </select>
           </div>
+        </div>
+
+        <div class="form-group" id="reassignTasksGroup" style="display:none; background: rgba(220,130,40,0.08); padding: 10px 14px; border-radius: var(--radius-s); border: 1px solid rgba(220,130,40,0.3); margin-bottom: 16px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; color: var(--navy);">
+            <input type="checkbox" id="reassign_active_tasks_input" style="margin-top: 2px;">
+            <span><strong>Reassign Active Maintenance Tasks:</strong> Transfer any active work orders (`Scheduled` or `In Progress`) from the old contractor to this newly selected firm.</span>
+          </label>
         </div>
 
         <div class="form-grid">
@@ -700,10 +708,33 @@
           </select>
           <span class="form-hint">Prototype decision-support indicator for maintenance auditing.</span>
         </div>
+
+        <!-- Contractor Portal Login Account Details (Phase 2 & 3) -->
+        <div id="contractorLoginSection" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <div style="font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">
+            Contractor Portal Login Credentials
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contractor_login_name_input">Portal Username / Designee Lead Name *</label>
+            <input type="text" id="contractor_login_name_input" class="form-input" placeholder="e.g. Suresh Kulkarni (Projects Lead)">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="contractor_login_email_input">Portal Login Email *</label>
+              <input type="email" id="contractor_login_email_input" class="form-input" placeholder="contractor.login@setusight.gov.in">
+              <span class="form-hint">Contractor credentials email to access portal.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contractor_login_password_input">Portal Login Password <span id="contractorPasswordReq">*</span></label>
+              <input type="password" id="contractor_login_password_input" class="form-input" placeholder="••••••••" minlength="6">
+              <span class="form-hint" id="contractorPasswordHint">Minimum 6 characters. Bcrypt hashed.</span>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal__footer">
         <button type="button" class="btn btn--ghost btn--sm" onclick="closeModal('contractorModal')">Cancel</button>
-        <button type="submit" class="btn btn--primary btn--sm">Save Contractor</button>
+        <button type="submit" id="saveContractorBtn" class="btn btn--primary btn--sm">Save Contractor Firm &amp; Login</button>
       </div>
     </form>
   </div>
@@ -738,6 +769,32 @@
         <button type="submit" class="btn btn--primary btn--sm">Generate Dossier</button>
       </div>
     </form>
+<!-- 5. ADMIN VIEW WORK ORDER & REPAIR EVIDENCE MODAL -->
+<div class="modal-backdrop" id="adminEvidenceModal">
+  <div class="modal modal--lg">
+    <div class="modal__header">
+      <h3 id="adminEvidenceTitle">Work Order &amp; Repair Evidence Dossier</h3>
+      <button class="modal__close" onclick="closeModal('adminEvidenceModal')">&times;</button>
+    </div>
+    <div class="modal__body">
+      <!-- Work Order Summary -->
+      <div id="adminEvidenceSummary" style="background: var(--bg-alt); padding: 14px; border-radius: var(--radius-s); margin-bottom: 20px;">
+        <!-- Dynamic -->
+      </div>
+
+      <!-- Photographic Evidence Gallery -->
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+          Photographic Repair Evidence Gallery
+        </div>
+        <div id="adminEvidenceGallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;">
+          <!-- Dynamic evidence cards -->
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--primary btn--sm" onclick="closeModal('adminEvidenceModal')">Close</button>
+    </div>
   </div>
 </div>
 

@@ -247,6 +247,10 @@ function openAddBridgeModal() {
   document.getElementById('bridgeForm').reset();
   document.getElementById('editBridgeId').value = '';
   document.getElementById('bridge_id_input').disabled = false;
+  const reassignGroup = document.getElementById('reassignTasksGroup');
+  if (reassignGroup) reassignGroup.style.display = 'none';
+  const reassignInput = document.getElementById('reassign_active_tasks_input');
+  if (reassignInput) reassignInput.checked = false;
   openModal('bridgeModal');
 }
 
@@ -268,6 +272,11 @@ function openEditBridgeModal(id) {
   document.getElementById('length_input').value = bridge.length || '';
   document.getElementById('width_input').value = bridge.width || '';
 
+  const reassignGroup = document.getElementById('reassignTasksGroup');
+  if (reassignGroup) reassignGroup.style.display = 'block';
+  const reassignInput = document.getElementById('reassign_active_tasks_input');
+  if (reassignInput) reassignInput.checked = false;
+
   openModal('bridgeModal');
 }
 
@@ -286,7 +295,8 @@ document.getElementById('bridgeForm')?.addEventListener('submit', async (e) => {
     design_life: document.getElementById('design_life_input').value,
     contractor_id: document.getElementById('contractor_select_input').value || null,
     length: document.getElementById('length_input').value || null,
-    width: document.getElementById('width_input').value || null
+    width: document.getElementById('width_input').value || null,
+    reassign_active_maintenance: document.getElementById('reassign_active_tasks_input')?.checked || false
   };
 
   saveBtn.disabled = true;
@@ -415,11 +425,90 @@ async function loadMaintenance() {
         <td><span class="status ${SetuApp.getStatusClass(m.status)}">${m.status}</span></td>
         <td style="max-width: 220px; font-size: 0.82rem; color: var(--navy-soft);">${m.remarks || '—'}</td>
         <td>
-          <button onclick="openEditMaintenancePrompt('${m.id}', '${m.status}')" class="btn btn--ghost btn--sm" style="padding: 4px 8px; font-size: 0.76rem;">Update</button>
+          <div style="display: flex; gap: 4px;">
+            <button onclick="openEditMaintenancePrompt('${m.id}', '${m.status}')" class="btn btn--ghost btn--sm" style="padding: 4px 8px; font-size: 0.76rem;">Update</button>
+            <button onclick="openAdminEvidenceModal('${m.id}')" class="btn btn--outline btn--sm" style="padding: 4px 8px; font-size: 0.76rem;">Evidence</button>
+          </div>
         </td>
       </tr>
     `).join('');
-  } catch (err) {}
+  } catch (err) {
+    SetuApp.showToast('Failed to load maintenance records', 'error');
+  }
+}
+
+async function openAdminEvidenceModal(maintId) {
+  const detailsEl = document.getElementById('adminEvidenceDetails');
+  const galleryEl = document.getElementById('adminEvidenceGallery');
+  if (!detailsEl || !galleryEl) return;
+
+  detailsEl.innerHTML = '<div style="color: var(--navy-soft);">Loading work order details...</div>';
+  galleryEl.innerHTML = '<div style="color: var(--navy-soft);">Loading evidence photos...</div>';
+  openModal('adminEvidenceModal');
+
+  try {
+    const [maintRes, evidenceRes] = await Promise.all([
+      SetuApp.fetchApi(`/api/maintenance/${maintId}`),
+      SetuApp.fetchApi(`/api/maintenance/${maintId}/evidence`)
+    ]);
+
+    const m = maintRes.data;
+    if (m) {
+      detailsEl.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 8px;">
+          <div><span style="color: var(--navy-soft); font-size: 0.78rem;">Bridge</span><br><strong>${m.bridge?.bridge_name || '—'}</strong> (${m.bridge?.bridge_id || '—'})</div>
+          <div><span style="color: var(--navy-soft); font-size: 0.78rem;">Contractor</span><br><strong>${m.contractor?.company_name || 'Unassigned'}</strong></div>
+          <div><span style="color: var(--navy-soft); font-size: 0.78rem;">Status</span><br><span class="status ${SetuApp.getStatusClass(m.status)}">${m.status}</span></div>
+          <div><span style="color: var(--navy-soft); font-size: 0.78rem;">Scheduled / Completed</span><br><span class="mono">${m.scheduled_date || '—'}</span> / <span class="mono">${m.completion_date || '—'}</span></div>
+        </div>
+        ${m.remarks ? `<div style="font-size: 0.85rem; color: var(--navy-soft); padding: 8px; background: rgba(0,0,0,0.03); border-radius: 6px;"><strong>Scope / Remarks:</strong> ${m.remarks}</div>` : ''}
+      `;
+    }
+
+    const items = evidenceRes.data || [];
+    if (items.length === 0) {
+      galleryEl.innerHTML = '<div style="grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--navy-soft); background: var(--bg-soft); border-radius: 8px;">No repair or completion evidence uploaded yet for this work order.</div>';
+      return;
+    }
+
+    galleryEl.innerHTML = items.map(item => `
+      <div class="card" style="margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--border-color);">
+        <div style="position: relative; height: 160px; background: #111;">
+          <img src="${item.image_url}" alt="${item.caption || 'Evidence'}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="window.open('${item.image_url}', '_blank')">
+          <span class="badge-tag" style="position: absolute; top: 8px; left: 8px; text-transform: uppercase; font-size: 0.7rem; background: ${item.evidence_type === 'after' ? 'var(--green)' : (item.evidence_type === 'progress' ? 'var(--blue)' : 'var(--gold)')}; color: #fff;">
+            ${item.evidence_type}
+          </span>
+        </div>
+        <div style="padding: 10px;">
+          <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">${item.caption || 'Photo Evidence'}</div>
+          <div style="font-size: 0.75rem; color: var(--navy-soft);">By: ${item.uploader?.name || 'Contractor'} &bull; ${new Date(item.created_at).toLocaleDateString()}</div>
+          <div style="margin-top: 8px; text-align: right;">
+            <button onclick="deleteAdminEvidence('${maintId}', '${item.id}')" class="btn btn--ghost btn--sm" style="color: var(--red); padding: 2px 6px; font-size: 0.72rem;">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    detailsEl.innerHTML = '<div style="color: var(--red);">Failed to load work order details.</div>';
+    galleryEl.innerHTML = '';
+  }
+}
+
+async function deleteAdminEvidence(maintId, evidenceId) {
+  if (!confirm('Are you sure you want to delete this evidence record?')) return;
+  try {
+    const res = await SetuApp.fetchApi(`/api/maintenance/${maintId}/evidence/${evidenceId}`, {
+      method: 'DELETE'
+    });
+    if (res.success) {
+      SetuApp.showToast('Evidence deleted', 'success');
+      openAdminEvidenceModal(maintId);
+    } else {
+      SetuApp.showToast(res.error || 'Failed to delete evidence', 'error');
+    }
+  } catch (err) {
+    SetuApp.showToast(err.message || 'Failed to delete evidence', 'error');
+  }
 }
 
 function openScheduleMaintenanceModal() {
@@ -447,7 +536,9 @@ document.getElementById('maintenanceForm')?.addEventListener('submit', async (e)
     closeModal('maintenanceModal');
     loadMaintenance();
     loadOverview();
-  } catch (err) {}
+  } catch (err) {
+    SetuApp.showToast('Failed to schedule maintenance', 'error');
+  }
 });
 
 async function openEditMaintenancePrompt(id, currentStatus) {
@@ -455,14 +546,20 @@ async function openEditMaintenancePrompt(id, currentStatus) {
   if (!newStatus || newStatus === currentStatus) return;
 
   try {
-    await SetuApp.fetchApi(`/api/maintenance/${id}`, {
+    const res = await SetuApp.fetchApi(`/api/maintenance/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ status: newStatus })
     });
+    if (res && res.success === false) {
+      SetuApp.showToast(res.error || `Failed to update status to ${newStatus}`, 'error');
+      return;
+    }
     SetuApp.showToast(`Maintenance status updated to ${newStatus}`, 'success');
     loadMaintenance();
     loadOverview();
-  } catch (err) {}
+  } catch (err) {
+    SetuApp.showToast(err.message || 'Failed to update status', 'error');
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -486,28 +583,48 @@ async function loadContractors() {
 
     tbody.innerHTML = allContractorsCache.map(c => `
       <tr>
+        <td class="mono font-bold">${c.contractor_code || '—'}</td>
         <td><strong>${c.company_name}</strong></td>
         <td>${c.contact_person}</td>
-        <td class="mono">${c.email}</td>
-        <td class="mono">${c.phone}</td>
-        <td class="mono text-center">${c.assigned_bridges_count || 0}</td>
-        <td class="mono text-center" style="color: var(--green);">${c.completed_tasks || 0}</td>
-        <td class="mono text-center" style="color: var(--red);">${c.overdue_tasks || 0}</td>
         <td>
-          <span class="status ${c.flag_status === 'Normal' ? 'status--good' : (c.flag_status.includes('Yellow') ? 'status--moderate' : 'status--attention')}">${c.flag_status}</span>
+          <div class="mono" style="font-size: 0.82rem;">${c.email}</div>
+          <div class="mono" style="font-size: 0.76rem; color: var(--navy-soft);">${c.phone}</div>
+        </td>
+        <td>
+          <span class="status ${c.login_account_status === 'Active' ? 'status--good' : 'status--attention'}">${c.login_account_status || 'Unlinked'}</span>
+          ${c.login_user ? `<div class="mono" style="font-size: 0.72rem; color: var(--navy-soft);">${c.login_user.email}</div>` : ''}
+        </td>
+        <td class="mono text-center font-bold">${c.assigned_bridges_count || 0}</td>
+        <td class="mono text-center" style="font-size: 0.82rem;">
+          <strong>${c.total_tasks || 0}</strong> / 
+          <span style="color: var(--blue);">${c.in_progress_tasks || 0}</span> / 
+          <span style="color: var(--green);">${c.completed_tasks || 0}</span> / 
+          <span style="color: var(--red);">${c.overdue_tasks || 0}</span>
+        </td>
+        <td class="mono text-center font-bold" style="color: ${c.completion_rate >= 80 ? 'var(--green)' : (c.completion_rate >= 50 ? 'var(--gold)' : 'var(--red)')};">
+          ${c.completion_rate != null ? c.completion_rate + '%' : '—'}
+        </td>
+        <td>
+          <span class="status ${c.flag_status === 'Normal' ? 'status--good' : (c.flag_status && c.flag_status.includes('Yellow') ? 'status--moderate' : 'status--attention')}">${c.flag_status}</span>
         </td>
         <td>
           <button onclick="openEditContractorModal('${c.id}')" class="btn btn--ghost btn--sm" style="padding: 4px 8px; font-size: 0.76rem;">Edit</button>
         </td>
       </tr>
     `).join('');
-  } catch (err) {}
+  } catch (err) {
+    SetuApp.showToast('Failed to load contractors', 'error');
+  }
 }
 
 function openAddContractorModal() {
-  document.getElementById('contractorModalTitle').textContent = 'Add Contractor Firm';
+  document.getElementById('contractorModalTitle').textContent = 'Add Contractor Firm & Portal Account';
   document.getElementById('contractorForm').reset();
   document.getElementById('editContractorId').value = '';
+  const pwdInput = document.getElementById('contractor_password_input');
+  if (pwdInput) pwdInput.required = true;
+  const helpText = document.getElementById('contractor_password_help');
+  if (helpText) helpText.textContent = 'Required for new contractor login (minimum 6 characters).';
   openModal('contractorModal');
 }
 
@@ -517,11 +634,25 @@ function openEditContractorModal(id) {
 
   document.getElementById('contractorModalTitle').textContent = `Edit Contractor: ${c.company_name}`;
   document.getElementById('editContractorId').value = c.id;
-  document.getElementById('company_name_input').value = c.company_name;
-  document.getElementById('contact_person_input').value = c.contact_person;
-  document.getElementById('contractor_email_input').value = c.email;
-  document.getElementById('contractor_phone_input').value = c.phone;
-  document.getElementById('contractor_flag_input').value = c.flag_status;
+  document.getElementById('company_name_input').value = c.company_name || '';
+  document.getElementById('contact_person_input').value = c.contact_person || '';
+  document.getElementById('contractor_email_input').value = c.email || '';
+  document.getElementById('contractor_phone_input').value = c.phone || '';
+  document.getElementById('contractor_flag_input').value = c.flag_status || 'Normal';
+
+  if (document.getElementById('contractor_login_name_input')) {
+    document.getElementById('contractor_login_name_input').value = c.login_user?.name || c.contact_person || '';
+  }
+  if (document.getElementById('contractor_login_email_input')) {
+    document.getElementById('contractor_login_email_input').value = c.login_user?.email || c.email || '';
+  }
+  const pwdInput = document.getElementById('contractor_password_input');
+  if (pwdInput) {
+    pwdInput.value = '';
+    pwdInput.required = false;
+  }
+  const helpText = document.getElementById('contractor_password_help');
+  if (helpText) helpText.textContent = 'Leave blank to preserve current login password.';
 
   openModal('contractorModal');
 }
@@ -534,26 +665,40 @@ document.getElementById('contractorForm')?.addEventListener('submit', async (e) 
     contact_person: document.getElementById('contact_person_input').value.trim(),
     email: document.getElementById('contractor_email_input').value.trim(),
     phone: document.getElementById('contractor_phone_input').value.trim(),
-    flag_status: document.getElementById('contractor_flag_input').value
+    flag_status: document.getElementById('contractor_flag_input').value,
+    login_name: document.getElementById('contractor_login_name_input')?.value.trim() || undefined,
+    login_email: document.getElementById('contractor_login_email_input')?.value.trim() || undefined,
+    login_password: document.getElementById('contractor_password_input')?.value || undefined
   };
 
   try {
+    let res;
     if (editId) {
-      await SetuApp.fetchApi(`/api/contractors/${editId}`, {
+      res = await SetuApp.fetchApi(`/api/contractors/${editId}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
+      if (res && res.success === false) {
+        SetuApp.showToast(res.error || 'Failed to update contractor', 'error');
+        return;
+      }
       SetuApp.showToast('Contractor updated successfully', 'success');
     } else {
-      await SetuApp.fetchApi('/api/contractors', {
+      res = await SetuApp.fetchApi('/api/contractors', {
         method: 'POST',
         body: JSON.stringify(payload)
       });
-      SetuApp.showToast('Contractor registered successfully', 'success');
+      if (res && res.success === false) {
+        SetuApp.showToast(res.error || 'Failed to create contractor', 'error');
+        return;
+      }
+      SetuApp.showToast('Contractor & login account registered successfully', 'success');
     }
     closeModal('contractorModal');
     loadContractors();
-  } catch (err) {}
+  } catch (err) {
+    SetuApp.showToast(err.message || 'Operation failed', 'error');
+  }
 });
 
 // ----------------------------------------------------------------------------

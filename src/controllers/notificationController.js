@@ -29,7 +29,8 @@ class NotificationController {
    */
   async markRead(req, res, next) {
     try {
-      const updated = await dbService.markNotificationRead(req.params.id);
+      const recipientId = req.user?.role === 'admin' ? null : req.user.id;
+      const updated = await dbService.markNotificationRead(req.params.id, recipientId);
       res.json({
         success: true,
         data: updated

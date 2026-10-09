@@ -171,6 +171,34 @@ class NotificationService {
   }
 
   /**
+   * Helper: Notify admins upon contractor starting work
+   */
+  async notifyMaintenanceStarted(bridge, maintenance, contractor) {
+    const bridgeName = bridge?.bridge_name || 'Bridge Asset';
+    const contractorName = contractor?.company_name || 'Assigned Contractor';
+    return this.notifyAdmins({
+      bridgeId: bridge?.id || maintenance?.bridge_id,
+      type: 'maintenance_due',
+      title: `Maintenance In Progress: ${bridgeName}`,
+      message: `Contractor ${contractorName} has commenced repair work on ${bridgeName}. Work order status updated to In Progress.`
+    });
+  }
+
+  /**
+   * Helper: Notify admins upon work order marked overdue
+   */
+  async notifyMaintenanceOverdue(bridge, maintenance, contractor) {
+    const bridgeName = bridge?.bridge_name || 'Bridge Asset';
+    const contractorName = contractor?.company_name || 'Assigned Contractor';
+    return this.notifyAdmins({
+      bridgeId: bridge?.id || maintenance?.bridge_id,
+      type: 'maintenance_due',
+      title: `Maintenance Overdue Alert: ${bridgeName}`,
+      message: `Work order for ${bridgeName} has been flagged as Overdue (scheduled: ${maintenance?.scheduled_date || 'N/A'}). Assigned firm: ${contractorName}.`
+    });
+  }
+
+  /**
    * Helper: Notify admins upon maintenance completion
    */
   async notifyMaintenanceCompleted(bridge, maintenance) {
